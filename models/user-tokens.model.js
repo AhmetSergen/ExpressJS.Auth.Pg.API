@@ -1,6 +1,6 @@
 const { DataTypes, Model } = require('sequelize');
 const sequelize = require('../config/database');
-const User = require('./User'); // Import User model for the association
+const User = require('./user.model'); // Import User model for the association
 
 class UserToken extends Model {}
 
@@ -12,6 +12,7 @@ UserToken.init(
       primaryKey: true,
     },
     userId: {
+      field: 'user_id', // Maps to the actual database column
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
@@ -21,7 +22,8 @@ UserToken.init(
       onDelete: 'CASCADE',
     },
     refreshToken: {
-      type: DataTypes.UUID,
+      field: 'refresh_token', // Maps to the actual database column
+      type: DataTypes.TEXT,
       allowNull: true,
     },
   },

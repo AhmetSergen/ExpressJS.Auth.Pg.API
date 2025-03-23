@@ -1,8 +1,9 @@
 # ExpressJS.Auth.Pg.API
 
-You need PostgreSQL installed to run project successfully.
+You need PostgreSQL installed to run project.
 Start Project by running one of the methods listed below.
 Mailtrap is used for SMTP mail service.
+For quick request examples rest-client.http file could be used.
 
 
 ## Start Project

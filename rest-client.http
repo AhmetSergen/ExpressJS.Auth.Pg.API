@@ -1,24 +1,33 @@
+# List of quick example requests for all controllers in this project.
+
 # "REST Client" VS Code extension can be used to send requests on .http files
 # Click "Send Request" button to send request to highlighted URL
 # If "Send Request" button does not appear on top of request URLs; 
 # highlight desired request line and press f1 -> select "Rest Client: Send Request"
 
+<!-- # Request Structure:
+
+<Http Protocol> <Url>
+<Request Header>
+
+<Request Body as JSON>
+-->
 
 ### [POST] Register
-# Send registration info as json in body
+# Send registration info as json in request body
 
-POST http://localhost:3001/api/auth/register
+POST http://localhost:3000/api/auth/register
 content-type: application/json
 
 {
-    "email": "test1@test.com",
-    "password": "testtest"
+    "email": "test1@testmail.com",
+    "password": "testpassword"
 }
 
 ### [POST] Login
 # Send login info as json in body
 
-POST http://localhost:3001/api/auth/login
+POST http://localhost:3000/api/auth/login
 content-type: application/json
 
 {

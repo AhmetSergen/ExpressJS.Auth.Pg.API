@@ -6,7 +6,8 @@ const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
 const nodemailer = require("nodemailer");
 const moment = require("moment");
-const { User, UserToken } = require('../models'); 
+const User = require('../models/user.model'); 
+const UserToken = require('../models/user-tokens.model'); 
 
 const register = async (req, res) => {
   try {
@@ -25,48 +26,17 @@ const register = async (req, res) => {
       // Encrypt password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(req.body.password, salt);
-
-      // Create new user instance
-
-      // old:
-      // const user = new User({ // TODO: use schemas for postgre
-      //   email: req.body.email,
-      //   password: hashedPassword,
-      //   emailConfirmed: false,
-      //   emailToken: uuidv4(),
-      //   security: {
-      //     tokens: [],
-      //     passwordReset: {
-      //       token: null,
-      //       provisionalPassword: null,
-      //       expiry: null,
-      //     },
-      //   },
-      // });
-
+      
       // Create new user instance. Returns the inserted user record as object
       const newUser = await User.create({
         email: req.body.email,
         password: hashedPassword,
+        emailConfirmed: false,
+        emailToken: uuidv4(),
+        passwordResetToken: null,
+        passwordResetProvisional: null, 
+        passwordResetExpiry: null,
       });
-
-
-
-      // (async () => {
-//   try {
-//     const newUser = await User.create({
-//       email: 'test2@example.com',
-//       password: 'hashedpassword123',
-//     });
-//     console.log('User created:', newUser.toJSON());
-//   } catch (error) {
-//     console.error('Error creating user:', error);
-//   }
-// })();
-
-
-      // // Attempt to save the user in the database
-      // await user.save();
 
       // Generate access token:
       const accessToken = jwt.sign(
@@ -88,27 +58,11 @@ const register = async (req, res) => {
         { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
       );
 
-      // Assign the token to user 
+      // Assign the refresh token to user with foreign key
       await UserToken.create({
-        user_id: newUser.id,  // FK to tb_users
-        refresh_token: refreshToken,
-        created_at: new Date(),
+        userId: newUser.id,  // FK to tb_users
+        refreshToken: refreshToken,
       });
-
-
-      // // TODO: old
-      // await User.updateOne(
-      //   { email: newUser.email },
-      //   {
-      //     $push: {
-      //       "security.tokens": {
-      //         refreshToken: refreshToken,
-      //         createdAt: new Date(),
-      //       },
-      //     },
-      //   }
-      // );
-
 
       // Send Email Confirmation
       await sendEmailConfirmation({
@@ -141,11 +95,12 @@ const register = async (req, res) => {
       errorMessage = err;
     }
 
-    console.log(errorMessage);
     res.status(400).json({ error: { status: 400, message: errorMessage } });
   }
 };
 
+/*
+ TODO:
 const login = async (req, res) => {
   try {
     const { error } = validation.loginSchema.validate(req.body); // Extract error property from returned object
@@ -330,6 +285,56 @@ const confirmEmailToken = async (req, res) => {
   }
 };
 
+const resetPassword = async (req, res) => {
+  try {
+    if (
+      req.body.provisionalPassword.length >= 6 &&
+      req.body.provisionalPassword.length <= 255
+    ) {
+      // Hash Password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(
+        req.body.provisionalPassword,
+        salt
+      );
+
+      // Generate a password reset token
+      const passwordResetToken = uuidv4();
+      const expiresIn = moment().add(10, "m").toISOString();
+
+      // Update user with password token
+      await User.findOneAndUpdate(
+        { email: req.body.email },
+        {
+          $set: {
+            "security.passwordReset": {
+              token: passwordResetToken,
+              provisionalPassword: hashedPassword,
+              expiry: expiresIn,
+            },
+          },
+        }
+      );
+
+      await sendPasswordResetConfirmation({
+        email: req.body.email,
+        passwordResetToken: passwordResetToken,
+      });
+
+      res.status(200).json({
+        success: { status: 200, message: "PASSWORD_RESET_EMAIL_SENT" },
+      });
+
+    } else {
+      res
+        .status(400)
+        .json({ error: { status: 400, message: "PASSWORD_INPUT_ERROR" } });
+    }
+  } catch (err) {
+    res.status(400).json({ error: { status: 400, message: "BAD_REQUEST", messageDetail: err} });
+  }
+};
+
 const resetPasswordConfirm = async (req, res) => {
   console.log("enter");
   try {
@@ -394,141 +399,6 @@ const resetPasswordConfirm = async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: { status: 400, message: "BAD_REQUEST", messageDetail: err } });
   }
-};
-
-const resetPassword = async (req, res) => {
-  try {
-    if (
-      req.body.provisionalPassword.length >= 6 &&
-      req.body.provisionalPassword.length <= 255
-    ) {
-      // Hash Password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(
-        req.body.provisionalPassword,
-        salt
-      );
-
-      // Generate a password reset token
-      const passwordResetToken = uuidv4();
-      const expiresIn = moment().add(10, "m").toISOString();
-
-      // Update user with password token
-      await User.findOneAndUpdate(
-        { email: req.body.email },
-        {
-          $set: {
-            "security.passwordReset": {
-              token: passwordResetToken,
-              provisionalPassword: hashedPassword,
-              expiry: expiresIn,
-            },
-          },
-        }
-      );
-
-      await sendPasswordResetConfirmation({
-        email: req.body.email,
-        passwordResetToken: passwordResetToken,
-      });
-
-      res.status(200).json({
-        success: { status: 200, message: "PASSWORD_RESET_EMAIL_SENT" },
-      });
-
-    } else {
-      res
-        .status(400)
-        .json({ error: { status: 400, message: "PASSWORD_INPUT_ERROR" } });
-    }
-  } catch (err) {
-    res.status(400).json({ error: { status: 400, message: "BAD_REQUEST", messageDetail: err} });
-  }
-};
-
-const addRefreshToken = async (user, refreshToken) => {
-  try {
-    const existingRefreshTokens = user.security.tokens;
-
-    // Check if theres less than 5 (limit can be changed)
-    if (existingRefreshTokens.length < 5) {
-      await User.updateOne(
-        { email: user.email },
-        {
-          $push: {
-            "security.tokens": {
-              refreshToken: refreshToken,
-              createdAt: new Date(),
-            },
-          },
-        }
-      );
-    } else {
-      // Otherwise remove the last token
-      await User.updateOne(
-        { email: user.email },
-        {
-          $pull: {
-            "security.tokens": {
-              _id: existingRefreshTokens[0]._id,
-            },
-          },
-        }
-      );
-
-      // Push the new token
-      await User.updateOne(
-        { email: user.email },
-        {
-          $push: {
-            "security.tokens": {
-              refreshToken: refreshToken,
-              createdAt: new Date(),
-            },
-          },
-        }
-      );
-    }
-    return true;
-  } catch (err) {
-    return false;
-  }
-};
-
-const sendEmailConfirmation = async (user) => {
-  var transport = nodemailer.createTransport({
-    host: process.env.NODEMAILER_HOST,
-    port: process.env.NODEMAILER_PORT,
-    auth: {
-      user: process.env.NODEMAILER_USER,
-      pass: process.env.NODEMAILER_PASS,
-    },
-  });
-
-  const info = await transport.sendMail({
-    from: "'Test' <noreply@test.com>",
-    to: user.email,
-    subject: "Confirm Your Email",
-    text: `Click the link to confirm your email: http://localhost:9000/confirm-email/${user.emailToken}`,
-  });
-};
-
-const sendPasswordResetConfirmation = async (user) => {
-  var transport = nodemailer.createTransport({
-    host: process.env.NODEMAILER_HOST,
-    port: process.env.NODEMAILER_PORT,
-    auth: {
-      user: process.env.NODEMAILER_USER,
-      pass: process.env.NODEMAILER_PASS,
-    },
-  });
-
-  const info = await transport.sendMail({
-    from: "'Test' <noreply@test.com>",
-    to: user.email,
-    subject: "Reset Your Password",
-    text: `Click the link to confirm your password reset: http://localhost:9000/confirm-password/${user.passwordResetToken}`,
-  });
 };
 
 const changeEmail = async (req, res) => {
@@ -617,14 +487,99 @@ const changeEmailConfirm = async (req, res) => {
   }
 };
 
+const addRefreshToken = async (user, refreshToken) => {
+  try {
+    const existingRefreshTokens = user.security.tokens;
+
+    // Check if theres less than 5 (limit can be changed)
+    if (existingRefreshTokens.length < 5) {
+      await User.updateOne(
+        { email: user.email },
+        {
+          $push: {
+            "security.tokens": {
+              refreshToken: refreshToken,
+              createdAt: new Date(),
+            },
+          },
+        }
+      );
+    } else {
+      // Otherwise remove the last token
+      await User.updateOne(
+        { email: user.email },
+        {
+          $pull: {
+            "security.tokens": {
+              _id: existingRefreshTokens[0]._id,
+            },
+          },
+        }
+      );
+
+      // Push the new token
+      await User.updateOne(
+        { email: user.email },
+        {
+          $push: {
+            "security.tokens": {
+              refreshToken: refreshToken,
+              createdAt: new Date(),
+            },
+          },
+        }
+      );
+    }
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+*/
+const sendEmailConfirmation = async (user) => {
+  var transport = nodemailer.createTransport({
+    host: process.env.NODEMAILER_HOST,
+    port: process.env.NODEMAILER_PORT,
+    auth: {
+      user: process.env.NODEMAILER_USER,
+      pass: process.env.NODEMAILER_PASS,
+    },
+  });
+
+  const info = await transport.sendMail({
+    from: "'Test' <noreply@test.com>",
+    to: user.email,
+    subject: "Confirm Your Email",
+    text: `Click the link to confirm your email: http://localhost:9000/confirm-email/${user.emailToken}`,
+  });
+};
+
+const sendPasswordResetConfirmation = async (user) => {
+  var transport = nodemailer.createTransport({
+    host: process.env.NODEMAILER_HOST,
+    port: process.env.NODEMAILER_PORT,
+    auth: {
+      user: process.env.NODEMAILER_USER,
+      pass: process.env.NODEMAILER_PASS,
+    },
+  });
+
+  const info = await transport.sendMail({
+    from: "'Test' <noreply@test.com>",
+    to: user.email,
+    subject: "Reset Your Password",
+    text: `Click the link to confirm your password reset: http://localhost:9000/confirm-password/${user.passwordResetToken}`,
+  });
+};
+
 module.exports = {
-  login,
   register,
-  generateAccessToken,
-  checkAccessToken,
-  confirmEmailToken,
-  resetPassword,
-  resetPasswordConfirm,
-  changeEmail,
-  changeEmailConfirm
+  // login,
+  // generateAccessToken,
+  // checkAccessToken,
+  // confirmEmailToken,
+  // resetPassword,
+  // resetPasswordConfirm,
+  // changeEmail,
+  // changeEmailConfirm
 };

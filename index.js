@@ -17,18 +17,18 @@ app.listen(port, () => console.log('Server running on port', port));
 
 // TODO: test: create test user using connection
 // detects parameters in .env file
-const User = require('./models/user.model');
-(async () => {
-  try {
-    const newUser = await User.create({
-      email: 'test3@example.com',
-      password: 'hashedpassword123',
-    });
-    console.log('User created:', newUser.toJSON());
-  } catch (error) {
-    console.error('Error creating user:', error);
-  }
-})();
+// const User = require('./models/user.model');
+// (async () => {
+//   try {
+//     const newUser = await User.create({
+//       email: 'test3@example.com',
+//       password: 'hashedpassword123',
+//     });
+//     console.log('User created:', newUser.toJSON());
+//   } catch (error) {
+//     console.error('Error creating user:', error);
+//   }
+// })();
 
 
 
