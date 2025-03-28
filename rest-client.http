@@ -31,18 +31,18 @@ POST http://localhost:3000/api/auth/login
 content-type: application/json
 
 {
-    "email": "test1@test.com",
-    "password": "testtest2"
+    "email": "test1@testmail.com",
+    "password": "testpassword"
 }
 
 ### [POST] Generate Access Token
 # Generate new access token using the refresh token in body
 
-POST http://localhost:3001/api/auth/generateAccessToken
+POST http://localhost:3000/api/auth/generateAccessToken
 content-type: application/json
 
 {
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Nzk4MDMwYmU0MDY5ZThmNGU2NDk0MDciLCJlbWFpbCI6InRlc3QxQHRlc3QuY29tIiwiaWF0IjoxNzM4MDE1NTIzLCJleHAiOjE3Mzg2MjAzMjN9.ciRSIagVihoDjxtU1MKGbeDBuKdjDDzr1yFxFp1c_gw"
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIzIiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDI3NDYxODEsImV4cCI6MTc0MzM1MDk4MX0.Jidm3VwHdt12NU-agCMrSogF-wMImLbM5c82ThJW53w"
 }
 
 ### [GET] Check Access Token

@@ -15,11 +15,11 @@ const verifyToken = require('../helpers/verifyToken');
 // [POST] Register
 router.post("/register", rateLimiter(5, 10), authController.register);
 
-// // [POST] Login
-// router.post("/login", rateLimiter(5, 10), authController.login);
+// [POST] Login
+router.post("/login", rateLimiter(5, 10), authController.login);
 
-// // [POST] Generate Access Token
-// router.post("/generateAccessToken", authController.generateAccessToken)
+// [POST] Generate Access Token
+router.post("/generateAccessToken", authController.generateAccessToken)
 
 // // [GET] Check Access Token
 // router.get("/checkAccessToken", [rateLimiter(5, 10), verifyToken], authController.checkAccessToken)

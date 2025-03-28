@@ -99,8 +99,6 @@ const register = async (req, res) => {
   }
 };
 
-/*
- TODO:
 const login = async (req, res) => {
   try {
     const { error } = validation.loginSchema.validate(req.body); // Extract error property from returned object
@@ -113,15 +111,29 @@ const login = async (req, res) => {
         original: error._original,
       });
     } else {
-      const user = await User.findOne({ email: req.body.email });
+      
+      //const user = await User.findOne({ email: req.body.email }); // old
+      const user = await User.findOne({ where: { email: req.body.email } });
+
+      console.log("# user.id: ", user.id);
+      console.log("# user: ", user);
+
+      const userTokens = await UserToken.findAll({ where: { id: user.id } });
+
+      console.log("# userTokens: ", userTokens);
 
       // Check if the email is correct
       if (user) {
+
+        console.log("# if user true");
+
         // Check if password is correct
         const validatePassword = await bcrypt.compare(
           req.body.password,
           user.password
         );
+
+        console.log("validatePassword: ", validatePassword);
 
         if (validatePassword) {
           // Generate access & refresh token
@@ -145,7 +157,7 @@ const login = async (req, res) => {
             { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
           );
 
-          if (await addRefreshToken(user, refreshToken)) {
+          if (await addRefreshToken(user, userTokens, refreshToken)) {
             res.status(200).json({
               success: {
                 status: 200,
@@ -180,6 +192,7 @@ const login = async (req, res) => {
   }
 };
 
+
 const generateAccessToken = async (req, res) => {
   try {
     const refreshToken = req.body.refreshToken;
@@ -190,8 +203,15 @@ const generateAccessToken = async (req, res) => {
         refreshToken,
         process.env.SECRET_REFRESH_TOKEN
       );
-      const user = await User.findOne({ email: decodeRefreshToken.email });
-      const existingRefreshTokens = user.security.tokens;
+
+      console.log("# decodeRefreshToken: ", decodeRefreshToken);
+
+      const user = await User.findOne({ where: { email: decodeRefreshToken.email } });
+
+      // const existingRefreshTokens = user.security.tokens; // Old
+      const existingRefreshTokens = await UserToken.findAll({ where: { userId: user.id } });
+
+      console.log("# existingRefreshTokens: ", existingRefreshTokens);
 
       // Check if refresh token is in document
       if (
@@ -232,6 +252,8 @@ const generateAccessToken = async (req, res) => {
   }
 };
 
+/*
+ TODO:
 const checkAccessToken = async (req, res) => {
   res.status(200).json({
     success: {
@@ -486,56 +508,98 @@ const changeEmailConfirm = async (req, res) => {
     res.status(400).json({error: {status: 400, message: 'BAD_REQUEST'}});
   }
 };
+*/
 
-const addRefreshToken = async (user, refreshToken) => {
+const addRefreshToken = async (user, userTokens, refreshToken) => {
+  // Add new refresh token to tokens table. Existing refresh token count is limited.
   try {
-    const existingRefreshTokens = user.security.tokens;
+    console.log("# addRefreshToken BEGIN");
+
+    // const existingRefreshTokens = user.security.tokens; // old
+    const existingRefreshTokens = userTokens;
+
+    console.log("# existingRefreshTokens:", existingRefreshTokens);
+    console.log("# existingRefreshTokens.length:", existingRefreshTokens.length);
 
     // Check if theres less than 5 (limit can be changed)
-    if (existingRefreshTokens.length < 5) {
-      await User.updateOne(
-        { email: user.email },
-        {
-          $push: {
-            "security.tokens": {
-              refreshToken: refreshToken,
-              createdAt: new Date(),
-            },
-          },
-        }
-      );
-    } else {
-      // Otherwise remove the last token
-      await User.updateOne(
-        { email: user.email },
-        {
-          $pull: {
-            "security.tokens": {
-              _id: existingRefreshTokens[0]._id,
-            },
-          },
-        }
-      );
+    if (existingRefreshTokens.length < process.env.REFRESH_TOKEN_STORAGE_COUNT) {
+      console.log("# existingRefreshTokens.length < 5 BEGIN")
 
       // Push the new token
-      await User.updateOne(
-        { email: user.email },
-        {
-          $push: {
-            "security.tokens": {
-              refreshToken: refreshToken,
-              createdAt: new Date(),
-            },
-          },
-        }
-      );
+      // await User.updateOne( // Old
+      //   { email: user.email },
+      //   {
+      //     $push: {
+      //       "security.tokens": {
+      //         refreshToken: refreshToken,
+      //         createdAt: new Date(),
+      //       },
+      //     },
+      //   }
+      // );
+
+      // Push the new token
+      await UserToken.create({
+        userId: user.id,  // Foreign key reference to `tb_users`
+        refreshToken: refreshToken,
+      });
+
+      console.log("# UserToken create complete");
+
+    } else { // Otherwise remove the last token 
+      // Find the oldest token (ordered by created_at ASC)
+      const oldestToken = await UserToken.findOne({
+        where: { userId: user.id },
+        order: [['created_at', 'ASC']], // Order by oldest first
+      });
+
+      console.log("# oldestToken:", oldestToken);
+      
+      // Remove oldest token for this user
+      await UserToken.destroy({
+        where: { id: oldestToken.id },
+      });
+
+      // Push the new token
+      await UserToken.create({
+        userId: user.id,  // Foreign key reference to `tb_users`
+        refreshToken: refreshToken,
+      });
+
+      // // Otherwise remove the last token
+      // await User.updateOne(
+      //   { email: user.email },
+      //   {
+      //     $pull: {
+      //       "security.tokens": {
+      //         _id: existingRefreshTokens[0]._id,
+      //       },
+      //     },
+      //   }
+      // );
+
+
+      // // Push the new token
+      // await User.updateOne( // Old
+      //   { email: user.email },
+      //   {
+      //     $push: {
+      //       "security.tokens": {
+      //         refreshToken: refreshToken,
+      //         createdAt: new Date(),
+      //       },
+      //     },
+      //   }
+      // );
+
+
     }
     return true;
   } catch (err) {
     return false;
   }
 };
-*/
+
 const sendEmailConfirmation = async (user) => {
   var transport = nodemailer.createTransport({
     host: process.env.NODEMAILER_HOST,
@@ -574,8 +638,8 @@ const sendPasswordResetConfirmation = async (user) => {
 
 module.exports = {
   register,
-  // login,
-  // generateAccessToken,
+  login,
+  generateAccessToken,
   // checkAccessToken,
   // confirmEmailToken,
   // resetPassword,
