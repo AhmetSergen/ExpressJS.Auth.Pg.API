@@ -21,8 +21,8 @@ router.post("/login", rateLimiter(5, 10), authController.login);
 // [POST] Generate Access Token
 router.post("/generateAccessToken", authController.generateAccessToken)
 
-// // [GET] Check Access Token
-// router.get("/checkAccessToken", [rateLimiter(5, 10), verifyToken], authController.checkAccessToken)
+// [GET] Check Access Token
+router.get("/checkAccessToken", [rateLimiter(5, 10), verifyToken], authController.checkAccessToken)
 
 // // [POST] Confirm Email Token
 // router.post("/confirmEmailToken", verifyToken, authController.confirmEmailToken)

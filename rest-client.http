@@ -47,10 +47,11 @@ content-type: application/json
 
 ### [GET] Check Access Token
 # Check if token is verified via veriftToken middleware
+# Use AccessToken created from generateAccessToken controller for Bearer token
 
-POST http://localhost:3001/api/auth/checkAccessToken
+GET http://localhost:3000/api/auth/checkAccessToken
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Nzk4MDMwYmU0MDY5ZThmNGU2NDk0MDciLCJlbWFpbCI6InRlc3QxQHRlc3QuY29tIiwiaWF0IjoxNzM4MDE1NjQ1LCJleHAiOjE3MzgwMTY1NDV9.kSJ_-WClDz1M-mcrP5btX_rWsj3TnPfPVc9z8OVM5bg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIzIiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDMxOTIzOTksImV4cCI6MTc0MzE5MzI5OX0.pb5ylFnspd3_7H-e2xthx_77IUsksitVAgkdAVfc14U
 
 ### [POST] Confirm Email Token
 # Get email token from confirmation mail 

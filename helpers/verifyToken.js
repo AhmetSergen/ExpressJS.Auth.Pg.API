@@ -1,12 +1,15 @@
 const jwt = require('jsonwebtoken');
 
-const auth = (req, res, next) => {
+const verifyToken = (req, res, next) => {
+    console.log("# verifyToken");
     try {
-        const token = req.header('Authorization').split(' ')[1]; // Split "Bearer ey..." auth string and take second index.
+        const accessToken = req.header('Authorization').split(' ')[1]; // Split "Bearer ey..." auth string and take second index.
 
-        if(token) {
+        console.log("# token: ", accessToken);
+        if(accessToken) {
             try{
-                req.user = jwt.verify(token, process.env.SECRET_ACCESS_TOKEN);
+                req.user = jwt.verify(accessToken, process.env.SECRET_ACCESS_TOKEN); // try to verify token
+                req.accessToken = accessToken;
                 next();
             } catch (err) {
                 res.status(401).json({error: {status: 401, message: "INVALID_TOKEN"}});
@@ -17,7 +20,6 @@ const auth = (req, res, next) => {
     } catch (err) {
         res.status(400).json({error: {status: 400, message: "ACCESS_DENIED"}});
     }
-
 }
 
-module.exports = auth;
+module.exports = verifyToken;

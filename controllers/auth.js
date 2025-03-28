@@ -192,7 +192,6 @@ const login = async (req, res) => {
   }
 };
 
-
 const generateAccessToken = async (req, res) => {
   try {
     const refreshToken = req.body.refreshToken;
@@ -252,18 +251,19 @@ const generateAccessToken = async (req, res) => {
   }
 };
 
-/*
- TODO:
 const checkAccessToken = async (req, res) => {
+  console.log("# checkAccessToken");
   res.status(200).json({
     success: {
       status: 200,
       message: "ACCESS_TOKEN_CONFIRMED",
-      accessToken: accessToken,
+      accessToken: req.accessToken,
     },
   });
 };
 
+/*
+ TODO:
 const confirmEmailToken = async (req, res) => {
   try {
     const emailToken = req.body.emailToken;
@@ -640,7 +640,7 @@ module.exports = {
   register,
   login,
   generateAccessToken,
-  // checkAccessToken,
+  checkAccessToken,
   // confirmEmailToken,
   // resetPassword,
   // resetPasswordConfirm,
