@@ -15,18 +15,19 @@
 
 ### [POST] Register
 # Send registration info as json in request body
-
+# Returns AccessToken and RefreshToken
+# Sends Corfirmation Mail to user mail address with user's email_token
 POST http://localhost:3000/api/auth/register
 content-type: application/json
 
 {
-    "email": "test1@testmail.com",
+    "email": "test2@testmail.com",
     "password": "testpassword"
 }
 
 ### [POST] Login
 # Send login info as json in body
-
+# Returns AccessToken and RefreshToken
 POST http://localhost:3000/api/auth/login
 content-type: application/json
 
@@ -37,38 +38,35 @@ content-type: application/json
 
 ### [POST] Generate Access Token
 # Generate new access token using the refresh token in body
-
+# Returns AccessToken
 POST http://localhost:3000/api/auth/generateAccessToken
 content-type: application/json
 
 {
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIzIiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDI3NDYxODEsImV4cCI6MTc0MzM1MDk4MX0.Jidm3VwHdt12NU-agCMrSogF-wMImLbM5c82ThJW53w"
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1IiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDMyNTA5NzcsImV4cCI6MTc0Mzg1NTc3N30.SSmXxhlYcVjoH-LIicQiY87qCCgwsam5KayDzcyqwGc"
 }
 
 ### [GET] Check Access Token
 # Check if token is verified via veriftToken middleware
 # Use AccessToken created from generateAccessToken controller for Bearer token
-
 GET http://localhost:3000/api/auth/checkAccessToken
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIzIiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDMxOTIzOTksImV4cCI6MTc0MzE5MzI5OX0.pb5ylFnspd3_7H-e2xthx_77IUsksitVAgkdAVfc14U
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1IiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDMyNTA5OTIsImV4cCI6MTc0MzI1MTg5Mn0.sEMreSiVGIsVxoErd4pMxmvt980caaj5UANoKioh8ME
 
 ### [POST] Confirm Email Token
 # Get email token from confirmation mail 
 # Use Bearer <access_token> in request headers
 # Use <emailToken> in request parameters
 # Email example: "Click the link to confirm your email: http://localhost:9000/confirm-email/<emailToken>"
-
-POST http://localhost:3001/api/auth/confirmEmailToken
+POST http://localhost:3000/api/auth/confirmEmailToken
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Nzk4MDMwYmU0MDY5ZThmNGU2NDk0MDciLCJlbWFpbCI6InRlc3QxQHRlc3QuY29tIiwiaWF0IjoxNzM4MDE1NjQ1LCJleHAiOjE3MzgwMTY1NDV9.kSJ_-WClDz1M-mcrP5btX_rWsj3TnPfPVc9z8OVM5bg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1IiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDMyNTA5OTIsImV4cCI6MTc0MzI1MTg5Mn0.sEMreSiVGIsVxoErd4pMxmvt980caaj5UANoKioh8ME
 
 {
-    "emailToken": "126e0fb2-e265-4e9c-8f28-c7c86061aa90"
+    "emailToken": "de2157ac-4cb7-48ff-b7db-148c400a8d3e"
 }
 
 ### [POST] Reset Password 
-
 POST http://localhost:3001/api/auth/resetPassword
 content-type: application/json
 
@@ -79,7 +77,6 @@ content-type: application/json
 
 ### [POST] Reset Password Confirm
 # Click the link to confirm your password reset: http://localhost:9000/confirm-password/<passwordResetToken>
-
 POST http://localhost:3001/api/auth/resetPasswordConfirm
 content-type: application/json
 
@@ -89,7 +86,6 @@ content-type: application/json
 }
 
 ### [POST] Change Email 
-
 POST http://localhost:3001/api/auth/changeEmail
 content-type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Nzk4MDMwYmU0MDY5ZThmNGU2NDk0MDciLCJlbWFpbCI6InRlc3QxQHRlc3QuY29tIiwiaWF0IjoxNzM4MDE1NjQ1LCJleHAiOjE3MzgwMTY1NDV9.kSJ_-WClDz1M-mcrP5btX_rWsj3TnPfPVc9z8OVM5bg
@@ -100,7 +96,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Nzk4MDMwY
 
 ### [POST] Change Email Confirm 
 # Click the link to confirm your new email change: http://localhost:9000/confirm-email-change/<changeEmailToken>
-
 POST http://localhost:3001/api/auth/resetPasswordConfirm
 content-type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Nzk4MDMwYmU0MDY5ZThmNGU2NDk0MDciLCJlbWFpbCI6InRlc3QxQHRlc3QuY29tIiwiaWF0IjoxNzM4MDE1NjQ1LCJleHAiOjE3MzgwMTY1NDV9.kSJ_-WClDz1M-mcrP5btX_rWsj3TnPfPVc9z8OVM5bg

@@ -23,6 +23,15 @@ const register = async (req, res) => {
         original: error._original,
       });
     } else {
+      existingUser = await User.findOne({ where: { email: req.body.email } });
+
+      if (existingUser) {
+        res.status(400).json({
+          status: 400,
+          message: "EMAIL_ALREADY_EXISTS",
+        });
+      }
+
       // Encrypt password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(req.body.password, salt);
@@ -262,13 +271,13 @@ const checkAccessToken = async (req, res) => {
   });
 };
 
-/*
- TODO:
 const confirmEmailToken = async (req, res) => {
   try {
-    const emailToken = req.body.emailToken;
+    const reqEmailToken = req.body.emailToken;
 
-    if (emailToken !== null) {
+    console.log("# reqEmailToken: ", reqEmailToken);
+
+    if (reqEmailToken !== null) {
       const accessToken = req.header("Authorization").split(" ")[1];
       const decodedAccessToken = jwt.verify(
         accessToken,
@@ -276,15 +285,27 @@ const confirmEmailToken = async (req, res) => {
       );
 
       // Check if user exists
-      const user = await User.findOne({ email: decodedAccessToken.email });
+      const user = await User.findOne({ where: { email: decodedAccessToken.email }});
+
+      console.log("# user: ", user.emailToken);
 
       // Check if email is already confirmed
       if (!user.emailConfirmed) {
         // Check if provided email token matches user's email token
-        if (emailToken === user.emailToken) {
-          await User.updateOne(
-            { email: decodedAccessToken.email },
-            { $set: { emailConfirmed: true, emailToken: null } }
+        if (reqEmailToken === user.emailToken) {
+          // await User.updateOne( // Old
+          //   { email: decodedAccessToken.email },
+          //   { $set: { emailConfirmed: true, emailToken: null } }
+          // );
+
+          await User.update(
+            { 
+              emailConfirmed: true, 
+              emailToken: null 
+            },
+            { 
+              where: { email: decodedAccessToken.email } 
+            }
           );
           res
             .status(200)
@@ -296,8 +317,8 @@ const confirmEmailToken = async (req, res) => {
         }
       } else {
         res
-          .status(401)
-          .json({ error: { status: 401, message: "EMAIL_ALREADY_CONFIRMED" } });
+          .status(200)
+          .json({ error: { status: 200, message: "EMAIL_ALREADY_CONFIRMED" } });
       }
     } else {
       res.status(400).json({ error: { status: 400, message: "BAD_REQUEST" } });
@@ -307,6 +328,8 @@ const confirmEmailToken = async (req, res) => {
   }
 };
 
+/*
+ TODO:
 const resetPassword = async (req, res) => {
   try {
     if (
@@ -641,7 +664,7 @@ module.exports = {
   login,
   generateAccessToken,
   checkAccessToken,
-  // confirmEmailToken,
+  confirmEmailToken,
   // resetPassword,
   // resetPasswordConfirm,
   // changeEmail,

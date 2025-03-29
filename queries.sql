@@ -15,8 +15,10 @@ CREATE TABLE auth.tb_users (
 	created_at TIMESTAMP DEFAULT NOW(),
 	updated_at TIMESTAMP 
 );
+CREATE INDEX idx_tb_users_email_hash ON auth.tb_users USING hash (email);
+-- Hast indexes are faster for equality comparisons (=) compared to default B-tree indexes.
 
--- drop table auth.tb_users_tokens
+
 CREATE TABLE auth.tb_users_tokens (
 	id SERIAL PRIMARY KEY,
 	user_id INT8 NOT NULL, -- REFERENCES tb_users.id 
@@ -24,3 +26,4 @@ CREATE TABLE auth.tb_users_tokens (
 	created_at TIMESTAMP DEFAULT NOW(),
 	FOREIGN KEY (user_id) REFERENCES auth.tb_users(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_tb_users_tokens_user_id ON auth.tb_users_tokens USING btree (user_id);

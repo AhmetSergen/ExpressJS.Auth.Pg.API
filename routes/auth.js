@@ -15,6 +15,8 @@ const verifyToken = require('../helpers/verifyToken');
 // [POST] Register
 router.post("/register", rateLimiter(5, 10), authController.register);
 
+// TODO: send confirmation route
+
 // [POST] Login
 router.post("/login", rateLimiter(5, 10), authController.login);
 
@@ -24,8 +26,8 @@ router.post("/generateAccessToken", authController.generateAccessToken)
 // [GET] Check Access Token
 router.get("/checkAccessToken", [rateLimiter(5, 10), verifyToken], authController.checkAccessToken)
 
-// // [POST] Confirm Email Token
-// router.post("/confirmEmailToken", verifyToken, authController.confirmEmailToken)
+// [POST] Confirm Email Token
+router.post("/confirmEmailToken", verifyToken, authController.confirmEmailToken)
 
 // // [POST] Reset Password 
 // router.post("/resetPassword", authController.resetPassword)
