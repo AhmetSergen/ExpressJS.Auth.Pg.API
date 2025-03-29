@@ -29,8 +29,8 @@ router.get("/checkAccessToken", [rateLimiter(5, 10), verifyToken], authControlle
 // [POST] Confirm Email Token
 router.post("/confirmEmailToken", verifyToken, authController.confirmEmailToken)
 
-// // [POST] Reset Password 
-// router.post("/resetPassword", authController.resetPassword)
+// [POST] Reset Password 
+router.post("/resetPassword", authController.resetPassword)
 
 // // [POST] Reset Password Confirm
 // router.post("/resetPasswordConfirm", authController.resetPasswordConfirm)

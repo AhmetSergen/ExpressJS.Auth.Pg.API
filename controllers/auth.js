@@ -328,8 +328,6 @@ const confirmEmailToken = async (req, res) => {
   }
 };
 
-/*
- TODO:
 const resetPassword = async (req, res) => {
   try {
     if (
@@ -343,23 +341,37 @@ const resetPassword = async (req, res) => {
         salt
       );
 
-      // Generate a password reset token
+      // Generate new password reset token
       const passwordResetToken = uuidv4();
       const expiresIn = moment().add(10, "m").toISOString();
 
       // Update user with password token
-      await User.findOneAndUpdate(
-        { email: req.body.email },
+      await User.update(
         {
-          $set: {
-            "security.passwordReset": {
-              token: passwordResetToken,
-              provisionalPassword: hashedPassword,
-              expiry: expiresIn,
-            },
-          },
+          passwordResetToken: passwordResetToken,
+          passwordResetProvisional: hashedPassword,
+          passwordResetExpiry: expiresIn,
+        },
+        {
+          where: { email: req.body.email },
         }
       );
+
+
+      // await User.findOneAndUpdate( // Old
+      //   { email: req.body.email },
+      //   {
+      //     $set: {
+      //       "security.passwordReset": {
+      //         token: passwordResetToken,
+      //         provisionalPassword: hashedPassword,
+      //         expiry: expiresIn,
+      //       },
+      //     },
+      //   }
+      // );
+
+
 
       await sendPasswordResetConfirmation({
         email: req.body.email,
@@ -380,6 +392,8 @@ const resetPassword = async (req, res) => {
   }
 };
 
+/*
+ TODO:
 const resetPasswordConfirm = async (req, res) => {
   console.log("enter");
   try {
@@ -634,7 +648,7 @@ const sendEmailConfirmation = async (user) => {
   });
 
   const info = await transport.sendMail({
-    from: "'Test' <noreply@test.com>",
+    from: "'ExpressJS Auth Pg API' <noreply@expressjsauthpgapi.com>",
     to: user.email,
     subject: "Confirm Your Email",
     text: `Click the link to confirm your email: http://localhost:9000/confirm-email/${user.emailToken}`,
@@ -665,7 +679,7 @@ module.exports = {
   generateAccessToken,
   checkAccessToken,
   confirmEmailToken,
-  // resetPassword,
+  resetPassword,
   // resetPasswordConfirm,
   // changeEmail,
   // changeEmailConfirm
