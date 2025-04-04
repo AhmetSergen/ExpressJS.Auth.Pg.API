@@ -330,6 +330,17 @@ const confirmEmailToken = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
+    const user = await User.findOne({ where: { email: req.body.email }});
+
+    if(!user) { // If email does not belong to any user
+      res
+      .status(406)
+      .json({ error: { status: 406, message: "EMAIL_NOT_FOUND" } });
+      return;
+    }
+
+    // TODO: eski parola ile teyit et, emaile ait parolayı kullanicidan al ve kontrol et
+
     if (
       req.body.provisionalPassword.length >= 6 &&
       req.body.provisionalPassword.length <= 255
@@ -344,6 +355,8 @@ const resetPassword = async (req, res) => {
       // Generate new password reset token
       const passwordResetToken = uuidv4();
       const expiresIn = moment().add(10, "m").toISOString();
+
+      console.log("# expiresIn: ", expiresIn);
 
       // Update user with password token
       await User.update(
@@ -392,55 +405,81 @@ const resetPassword = async (req, res) => {
   }
 };
 
-/*
- TODO:
 const resetPasswordConfirm = async (req, res) => {
-  console.log("enter");
+  console.log("# enter");
   try {
-    console.log("try");
+    console.log("# try");
 
-    const user = await User.findOne({ email: req.body.email });
-    console.log("user:", user);
-    console.log("log2");
-    console.log(user.security.passwordReset.token);
-    console.log(req.body.passwordResetToken);
+    const user = await User.findOne({ where: { email: req.body.email }});
+    //console.log("user:", user);
+    console.log("# log2");
+    console.log("# user.passwordResetToken",user.passwordResetToken);
+    console.log("# req.body.passwordResetToken", req.body.passwordResetToken);
 
 
     // Check if supplied passwordResetToken matches with the user's stored one
-    if (user.security.passwordReset.token === req.body.passwordResetToken) {
-      console.log("matched");
+    if (user.passwordResetToken === req.body.passwordResetToken) {
+      console.log("# MATCHED");
+      //console.log("# user",user);
+      console.log("# user.passwordResetExpiry",user.passwordResetExpiry);
+      console.log("# new date", new Date());
+      console.log("# new Date(user.passwordResetExpiry)", new Date(user.passwordResetExpiry));
+      console.log("# user.passwordResetExpiry", user.passwordResetExpiry);
+
 
       // Check if password reset token is expired
-      if (
-        new Date().getTime() <=
-        new Date(user.security.passwordReset.expiry).getTime()
-      ) {
-        await User.updateOne(
-          { email: req.body.email },
+      if (new Date() <= new Date(user.passwordResetExpiry)) {
+        console.log("# log3");
+
+        await User.update(
           {
-            $set: {
-              password: user.security.passwordReset.provisionalPassword,
-              "security.passwordReset.token": null,
-              "security.passwordReset.provisionalPassword": null,
-              "security.passwordReset.expiry": null,
-            },
-          }
+            password: user.passwordResetProvisional, // New password
+            passwordResetToken: null,
+            passwordResetProvisional: null,
+            passwordResetExpiry: null,
+          },
+          { where: { email: req.body.email}, }
         );
+
+        
+        // await User.update( // Old
+        //   { email: req.body.email },
+        //   {
+        //     $set: {
+        //       password: user.security.passwordReset.provisionalPassword,
+        //       "security.passwordReset.token": null,
+        //       "security.passwordReset.provisionalPassword": null,
+        //       "security.passwordReset.expiry": null,
+        //     },
+        //   }
+        // );
 
         res.status(200).json({
           success: { status: 200, message: "PASSWORD_RESET_SUCCESS" },
         });
-      } else {
+      } else { // Password reset token is expired
+        console.log("# Expired");
+
         await User.updateOne(
-          { email: req.body.email },
           {
-            $set: {
-              "security.passwordReset.token": null,
-              "security.passwordReset.provisionalPassword": null,
-              "security.passwordReset.expiry": null,
-            },
-          }
+            passwordResetToken: null,
+            passwordResetProvisional: null,
+            passwordResetExpiry: null,
+          },
+          { where: {email: req.body.email}, }
         );
+
+
+        // await User.updateOne( // Old
+        //   { email: req.body.email },
+        //   {
+        //     $set: {
+        //       "security.passwordReset.token": null,
+        //       "security.passwordReset.provisionalPassword": null,
+        //       "security.passwordReset.expiry": null,
+        //     },
+        //   }
+        // );
 
         res
           .status(401)
@@ -460,6 +499,8 @@ const resetPasswordConfirm = async (req, res) => {
   }
 };
 
+/*
+ TODO:
 const changeEmail = async (req, res) => {
   try {
     if (validation.emailSchema.validate({email: req.body.provisionalEmail})) {
@@ -680,7 +721,7 @@ module.exports = {
   checkAccessToken,
   confirmEmailToken,
   resetPassword,
-  // resetPasswordConfirm,
+  resetPasswordConfirm,
   // changeEmail,
   // changeEmailConfirm
 };

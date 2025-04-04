@@ -21,7 +21,7 @@ POST http://localhost:3000/api/auth/register
 content-type: application/json
 
 {
-    "email": "test2@testmail.com",
+    "email": "test1@testmail.com",
     "password": "testpassword"
 }
 
@@ -72,18 +72,18 @@ POST http://localhost:3000/api/auth/resetPassword
 content-type: application/json
 
 {
-    "email": "test1@test.com",
+    "email": "test1@testmail.com",
     "provisionalPassword": "testtest2"
 }
 
 ### [POST] Reset Password Confirm
 # Click the link to confirm your password reset: http://localhost:9000/confirm-password/<passwordResetToken>
-POST http://localhost:3001/api/auth/resetPasswordConfirm
+POST http://localhost:3000/api/auth/resetPasswordConfirm
 content-type: application/json
 
 {
-    "email": "test1@test.com",
-    "passwordResetToken": "ea7d66bd-38dc-4385-8ea5-6246fc604363"
+    "email": "test1@testmail.com",
+    "passwordResetToken": "86919ad0-32b1-40e1-a71d-b3547f96c131"
 }
 
 ### [POST] Change Email 

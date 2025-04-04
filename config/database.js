@@ -5,6 +5,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: 'postgres',
   database: 'AuthDB',
   schema: 'auth',
+  timezone: '+00:00', // Force UTC 
   logging: console.log, // Enable logging to debug SQL queries
 });
 

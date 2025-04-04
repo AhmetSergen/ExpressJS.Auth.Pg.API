@@ -32,8 +32,8 @@ router.post("/confirmEmailToken", verifyToken, authController.confirmEmailToken)
 // [POST] Reset Password 
 router.post("/resetPassword", authController.resetPassword)
 
-// // [POST] Reset Password Confirm
-// router.post("/resetPasswordConfirm", authController.resetPasswordConfirm)
+// [POST] Reset Password Confirm
+router.post("/resetPasswordConfirm", authController.resetPasswordConfirm)
 
 // // [POST] Change Email
 // router.post('/changeEmail', [rateLimiter(5, 10), verifyToken], authController.changeEmail);
