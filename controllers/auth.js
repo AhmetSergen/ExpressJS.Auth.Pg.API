@@ -76,10 +76,7 @@ const register = async (req, res) => {
       });
 
       // Send Email Confirmation
-      await sendEmailConfirmation({
-        email: newUser.email,
-        emailToken: newUser.emailToken,
-      });
+      await sendEmailConfirmation(newUser.email, newUser.emailToken);
 
       res
         .status(200)
@@ -88,12 +85,9 @@ const register = async (req, res) => {
           success: {
             status: 200, // Success
             message: "REGISTER_SUCCESS",
-            accessToken: accessToken, // Access token should be received as a cookie on the front end.
-            refreshToken: refreshToken,
-            user: {
-              id: newUser.id,
-              email: newUser.email,
-            },
+            accessToken: accessToken, // Access token should be stored in a cookie on the front end. 
+            refreshToken: refreshToken, // Refresh token should be stored in a Secure, HttpOnly cookie on the front end.
+            email: newUser.email,
           },
         });
     }
@@ -125,7 +119,6 @@ const login = async (req, res) => {
         original: error._original,
       });
     } else {
-      //const user = await User.findOne({ email: req.body.email }); // old
       const user = await User.findOne({ where: { email: req.body.email } });
 
       if(!user) {
@@ -186,7 +179,6 @@ const login = async (req, res) => {
               },
             });
           }
-          
         } else {
           res
             .status(403)
@@ -216,7 +208,6 @@ const generateAccessToken = async (req, res) => {
 
       const user = await User.findOne({ where: { email: decodeRefreshToken.email } });
 
-      // const existingRefreshTokens = user.security.tokens; // Old
       const existingRefreshTokens = await UserToken.findAll({ where: { userId: user.id } });
 
       // Check if refresh token is in document
@@ -354,10 +345,7 @@ const resetPassword = async (req, res) => {
         }
       );
 
-      await sendPasswordResetConfirmation({
-        email: req.body.email,
-        passwordResetToken: passwordResetToken,
-      });
+      await sendPasswordResetConfirmation(req.body.email, passwordResetToken);
 
       res.status(200).json({
         success: { status: 200, message: "PASSWORD_RESET_EMAIL_SENT" },
@@ -432,7 +420,6 @@ const changeEmail = async (req, res) => {
       // Check if email exists
       const provisionalEmailExists = await User.findOne({ where: {email: req.body.provisionalEmail}, attributes: ['id']});
 
-      
       if (!provisionalEmailExists) {
         // Generate an email confirmation token
         const changeEmailToken = uuidv4();
@@ -452,7 +439,7 @@ const changeEmail = async (req, res) => {
 
         const updatedUser = updatedRows[0]; // this will be your updated user
 
-        await sendChangeEmailConfirmation(updatedUser);
+        await sendChangeEmailConfirmation(updatedUser.email, updatedUser.changeEmailToken);
 
         res.status(200).json({success: {status: 200, message: 'CHANGE_EMAIL_CONFIRMATION_SENT'}});
       } else {
@@ -465,7 +452,6 @@ const changeEmail = async (req, res) => {
     res.status(400).json({error: {status: 400, message: 'BAD_REQUEST'}});
   }
 };
-
 
 const changeEmailConfirm = async (req, res) => {
   try {
@@ -503,7 +489,6 @@ const changeEmailConfirm = async (req, res) => {
         res.status(401).json({success: {status: 401, message: 'INVALID_CHANGE_EMAIL_TOKEN'}});
       }
     } else { // Provisional email already exists. Abort email change process
-
       await User.update(
         {
           changeEmailToken: null,
@@ -523,7 +508,6 @@ const changeEmailConfirm = async (req, res) => {
 const addRefreshToken = async (user, userTokens, refreshToken) => {
   // Add new refresh token to tokens table. Existing refresh token count is limited.
   try {
-    // const existingRefreshTokens = user.security.tokens; // old
     const existingRefreshTokens = userTokens;
 
     // Check if theres less than 5 (limit can be changed)
@@ -557,7 +541,7 @@ const addRefreshToken = async (user, userTokens, refreshToken) => {
   }
 };
 
-const sendEmailConfirmation = async (user) => {
+const sendEmailConfirmation = async (toEmail, token) => {
   var transport = nodemailer.createTransport({
     host: process.env.NODEMAILER_HOST,
     port: process.env.NODEMAILER_PORT,
@@ -569,13 +553,13 @@ const sendEmailConfirmation = async (user) => {
 
   const info = await transport.sendMail({
     from: process.env.FROM_MAIL,
-    to: user.email,
+    to: toEmail,
     subject: "Confirm Your Email",
-    text: `Click the link to confirm your email: http://localhost:9000/confirm-email/${user.emailToken}`,
+    text: `Click the link to confirm your email: http://localhost:9000/confirm-email/${token}`,
   });
 };
 
-const sendPasswordResetConfirmation = async (user) => {
+const sendPasswordResetConfirmation = async (toEmail, token) => {
   var transport = nodemailer.createTransport({
     host: process.env.NODEMAILER_HOST,
     port: process.env.NODEMAILER_PORT,
@@ -587,13 +571,13 @@ const sendPasswordResetConfirmation = async (user) => {
 
   const info = await transport.sendMail({
     from: process.env.FROM_MAIL,
-    to: user.email,
+    to: toEmail,
     subject: "Reset Your Password",
-    text: `Click the link to confirm your password reset: http://localhost:9000/confirm-password/${user.passwordResetToken}`,
+    text: `Click the link to confirm your password reset: http://localhost:9000/confirm-password/${token}`,
   });
 };
 
-const sendChangeEmailConfirmation = async (user) => { // TODO: direkt user degil de ToEmail ve token al
+const sendChangeEmailConfirmation = async (toEmail, token) => { 
   var transport = nodemailer.createTransport({
     host: process.env.NODEMAILER_HOST,
     port: process.env.NODEMAILER_PORT,
@@ -605,9 +589,9 @@ const sendChangeEmailConfirmation = async (user) => { // TODO: direkt user degil
 
   const info = await transport.sendMail({
     from: process.env.FROM_MAIL, 
-    to: user.email,
+    to: toEmail,
     subject: "Change Your Email",
-    text: `Click the link to confirm your email change: http://localhost:9000/confirm-change-email/${user.changeEmailToken}`,
+    text: `Click the link to confirm your email change: http://localhost:9000/confirm-change-email/${token}`,
   });
 };
 
