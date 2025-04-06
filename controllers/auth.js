@@ -17,7 +17,7 @@ const register = async (req, res) => {
 
     if (error) {
       res.status(400).json({
-        status: 400,
+        status: 400, // Bad Request
         messsage: "INPUT_ERRORS",
         errors: error.details,
         original: error._original,
@@ -26,8 +26,8 @@ const register = async (req, res) => {
       existingUser = await User.findOne({ where: { email: req.body.email } });
 
       if (existingUser) {
-        res.status(400).json({
-          status: 400,
+        res.status(409).json({
+          status: 409, // Conflict
           message: "EMAIL_ALREADY_EXISTS",
         });
       }
@@ -84,7 +84,7 @@ const register = async (req, res) => {
         .header()
         .json({
           success: {
-            status: 200,
+            status: 200, // Success
             message: "REGISTER_SUCCESS",
             accessToken: accessToken, // Access token should be received as a cookie on the front end.
             refreshToken: refreshToken,
@@ -96,23 +96,28 @@ const register = async (req, res) => {
         });
     }
   } catch (err) {
+    let errorStatus;
     let errorMessage;
 
     if (err.keyPattern?.email === 1) {
+      errorStatus = 409;
       errorMessage = "EMAIL_ALREADY_EXISTS";
     } else {
+      errorStatus = 400;
       errorMessage = err;
     }
 
-    res.status(400).json({ error: { status: 400, message: errorMessage } });
+    res.status(errorStatus).json({ error: { status: errorStatus, message: errorMessage } });
   }
 };
 
 const login = async (req, res) => {
   try {
+    console.log("# login");
     const { error } = validation.loginSchema.validate(req.body); // Extract error property from returned object
 
     if (error) {
+      console.log("# error: ", error);
       res.status(400).json({
         status: 400,
         messsage: "INPUT_ERRORS",
@@ -120,12 +125,21 @@ const login = async (req, res) => {
         original: error._original,
       });
     } else {
-      
+      console.log("# else");
       //const user = await User.findOne({ email: req.body.email }); // old
       const user = await User.findOne({ where: { email: req.body.email } });
 
-      console.log("# user.id: ", user.id);
+      if(!user) {
+        res.status(404).json({
+          status: 404, // Not Found
+          message: "USER_NOT_FOUND",
+        });
+
+        return;
+      }
+
       console.log("# user: ", user);
+      console.log("# user.id: ", user.id);
 
       const userTokens = await UserToken.findAll({ where: { id: user.id } });
 
@@ -191,8 +205,8 @@ const login = async (req, res) => {
         }
       } else {
         res
-          .status(401)
-          .json({ error: { status: 401, message: "USER_NOT_FOUND" } });
+          .status(404)
+          .json({ error: { status: 404, message: "USER_NOT_FOUND" } });
       }
     }
   } catch (err) {
@@ -334,8 +348,8 @@ const resetPassword = async (req, res) => {
 
     if(!user) { // If email does not belong to any user
       res
-      .status(406)
-      .json({ error: { status: 406, message: "EMAIL_NOT_FOUND" } });
+      .status(404)
+      .json({ error: { status: 404, message: "EMAIL_NOT_FOUND" } });
       return;
     }
 
@@ -460,7 +474,7 @@ const resetPasswordConfirm = async (req, res) => {
       } else { // Password reset token is expired
         console.log("# Expired");
 
-        await User.updateOne(
+        await User.updateOne( // TODO: çevir
           {
             passwordResetToken: null,
             passwordResetProvisional: null,
@@ -499,73 +513,112 @@ const resetPasswordConfirm = async (req, res) => {
   }
 };
 
-/*
- TODO:
+
 const changeEmail = async (req, res) => {
   try {
-    if (validation.emailSchema.validate({email: req.body.provisionalEmail})) {
+    console.log("# changeEmail");
+    if (validation.registerSchema.validate({email: req.body.provisionalEmail})) {
+      console.log("# valid");
+
       // Decode Access Token
       const accessToken = req.header('Authorization').split(' ')[1];
-      const decodeAccessToken = jwt.verify(accessToken, process.env.SECRET_ACCESS_TOKEN);
+      const decodedAccessToken = jwt.verify(accessToken, process.env.SECRET_ACCESS_TOKEN);
+
+      console.log("# accessToken: ", accessToken);
+      console.log("# decodedAccessToken: ", decodedAccessToken);
 
       // Check if email exists
-      const emailExistsCheck = await User.findOne({email: req.body.provisionalEmail});
+      const provisionalEmailExists = await User.findOne({ where: {email: req.body.provisionalEmail}, attributes: ['id']});
 
-      if (!emailExistsCheck) {
+      
+      if (!provisionalEmailExists) {
         // Generate an email confirmation token
         const changeEmailToken = uuidv4();
-        const expiresIn = moment().add(10, 'm').toISOString();
+        const changeEmailExpiry = moment().add(10, 'm').toISOString(); // Adds to UTC time // TODO: .env dosyasindan al
 
-        // Update user with change email token
-        const user = await User.findOneAndUpdate({email: decodeAccessToken.email}, {
-          $set: {
-            'security.changeEmail': {
-              token: changeEmailToken,
-              provisionalEmail: req.body.provisionalEmail,
-              expiry: expiresIn,
-            },
+        console.log("# changeEmailExpiry: ", changeEmailExpiry);
+
+        const [updatedCount, updatedRows] = await User.update(
+          {
+            changeEmailToken: changeEmailToken,
+            changeEmailProvisional: req.body.provisionalEmail,
+            changeEmailExpiry: changeEmailExpiry,
           },
-        });
+          {
+            where: { email: decodedAccessToken.email },
+            returning: true, // Returns updated rows (PostgreSQL only)
+          }
+        );
 
-        await changeEmailConfirmation({email: user.email, emailToken: changeEmailToken});
+        const updatedUser = updatedRows[0]; // this will be your updated user
 
-        res.status(200).json({success: {status: 200, message: 'CHANGE_EMAIL_SENT'}});
+        console.log("# update completed-UpdatedUser: ");
+
+        // // Update user with change email token
+        // const user = await User.findOneAndUpdate({email: decodedAccessToken.email}, { // Old
+        //   $set: {
+        //     'security.changeEmail': {
+        //       token: changeEmailToken,
+        //       provisionalEmail: req.body.provisionalEmail,
+        //       expiry: expiresIn,
+        //     },
+        //   },
+        // });
+
+        //await changeEmailConfirmation({email: user.email, emailToken: changeEmailToken});
+
+        await sendChangeEmailConfirmation(updatedUser);
+
+        res.status(200).json({success: {status: 200, message: 'CHANGE_EMAIL_CONFIRMATION_SENT'}});
       } else {
-        res.status(400).json({error: {status: 400, message: 'EMAIL_USER_REGISTERED'}});
+        res.status(409).json({error: {status: 409, message: 'EMAIL_ALREADY_EXISTS'}});
       }
     } else {
-      res.status(400).json({error: {status: 400, message: 'EMAIL_INPUT'}});
+      res.status(400).json({error: {status: 400, message: 'EMAIL_VALIDATION_ERROR'}});
     }
   } catch (err) {
-    res.status(400).json({error: {status: 200, message: 'BAD_REQUEST'}});
+    res.status(400).json({error: {status: 400, message: 'BAD_REQUEST'}});
   }
 };
 
+
 const changeEmailConfirm = async (req, res) => {
+  console.log("# changeEmailConfirm");
   try {
     // Decode Access Token
     const accessToken = req.header('Authorization').split(' ')[1];
     const decodedAccessToken = jwt.verify(accessToken, process.env.SECRET_ACCESS_TOKEN);
 
     // Fetch user
-    const user = await User.findOne({email: decodedAccessToken.email});
+    const user = await User.findOne({ where: {email: decodedAccessToken.email}});
 
     // Check if the email exists
-    const emailExistsCheck = await User.findOne({email: user.security.changeEmail.provisionalEmail});
+    const emailExistsCheck = await User.findOne({ where: {email: user.changeEmailProvisional}});
 
     if (!emailExistsCheck) {
-      if (user.security.changeEmail.token === req.body.changeEmailToken) {
+      if (user.changeEmailToken === req.body.changeEmailToken) {
 
         // Check if the change email token is not expired
-        if (new Date().getTime() <= new Date(user.security.changeEmail.expiry).getTime()) {
-          await User.updateOne({email: decodedAccessToken.email}, {
-            $set: {
-              'email': user.security.changeEmail.provisionalEmail,
-              'security.changeEmail.token': null,
-              'security.changeEmail.provisionalEmail': null,
-              'security.changeEmail.expiry': null,
+        if (new Date() <= new Date(user.changeEmailExpiry)) {
+
+          await User.update(
+            {
+              email: user.changeEmailProvisional,
+              changeEmailToken: null,
+              changeEmailProvisional: null,
+              changeEmailExpiry: null,
             },
-          });
+            { where: {email: decodedAccessToken.email}},
+          );
+
+          // await User.updateOne({email: decodedAccessToken.email}, { // Old
+          //   $set: {
+          //     'email': user.security.changeEmail.provisionalEmail,
+          //     'security.changeEmail.token': null,
+          //     'security.changeEmail.provisionalEmail': null,
+          //     'security.changeEmail.expiry': null,
+          //   },
+          // });
           res.status(200).json({success: {status: 200, message: 'CHANGE_EMAIL_SUCCESS'}});
         } else {
           res.status(401).json({success: {status: 401, message: 'CHANGE_EMAIL_TOKEN_EXPIRED'}});
@@ -573,20 +626,31 @@ const changeEmailConfirm = async (req, res) => {
       } else {
         res.status(401).json({success: {status: 401, message: 'INVALID_CHANGE_EMAIL_TOKEN'}});
       }
-    } else {
-      await User.updateOne({email: decodedAccessToken.email}, {
-        $set: {
-          'security.changeEmail.token': null,
-          'security.changeEmail.provisionalEmail': null,
-          'security.changeEmail.expiry': null,
+    } else { // Provisional email already exists. Abort email change process
+
+      await User.update(
+        {
+          changeEmailToken: null,
+          changeEmailProvisional: null,
+          changeEmailExpiry: null,
         },
-      });
+        { where: {email: decodedAccessToken.email}}
+      );
+
+      // await User.updateOne({email: decodedAccessToken.email}, { // Old
+      //   $set: {
+      //     'security.changeEmail.token': null,
+      //     'security.changeEmail.provisionalEmail': null,
+      //     'security.changeEmail.expiry': null,
+      //   },
+      // });
+
+      res.status(409).json({error: {status: 409, message: 'PROVISIONAL_EMAIL_ALREADY_EXISTS'}});
     }
   } catch (err) {
     res.status(400).json({error: {status: 400, message: 'BAD_REQUEST'}});
   }
 };
-*/
 
 const addRefreshToken = async (user, userTokens, refreshToken) => {
   // Add new refresh token to tokens table. Existing refresh token count is limited.
@@ -689,7 +753,7 @@ const sendEmailConfirmation = async (user) => {
   });
 
   const info = await transport.sendMail({
-    from: "'ExpressJS Auth Pg API' <noreply@expressjsauthpgapi.com>",
+    from: process.env.FROM_MAIL,
     to: user.email,
     subject: "Confirm Your Email",
     text: `Click the link to confirm your email: http://localhost:9000/confirm-email/${user.emailToken}`,
@@ -707,11 +771,34 @@ const sendPasswordResetConfirmation = async (user) => {
   });
 
   const info = await transport.sendMail({
-    from: "'Test' <noreply@test.com>",
+    from: process.env.FROM_MAIL,
     to: user.email,
     subject: "Reset Your Password",
     text: `Click the link to confirm your password reset: http://localhost:9000/confirm-password/${user.passwordResetToken}`,
   });
+};
+
+const sendChangeEmailConfirmation = async (user) => { // TODO: direkt user degil de ToEmail ve token al
+  console.log("# sendChangeEmailConfirmation");
+  var transport = nodemailer.createTransport({
+    host: process.env.NODEMAILER_HOST,
+    port: process.env.NODEMAILER_PORT,
+    auth: {
+      user: process.env.NODEMAILER_USER,
+      pass: process.env.NODEMAILER_PASS,
+    },
+  });
+
+  console.log("# transport:");
+
+  const info = await transport.sendMail({
+    from: process.env.FROM_MAIL, // TODO: froım maili .env den al
+    to: user.email,
+    subject: "Change Your Email",
+    text: `Click the link to confirm your email change: http://localhost:9000/confirm-change-email/${user.changeEmailToken}`,
+  });
+
+  console.log("# info:", info);
 };
 
 module.exports = {
@@ -722,6 +809,6 @@ module.exports = {
   confirmEmailToken,
   resetPassword,
   resetPasswordConfirm,
-  // changeEmail,
-  // changeEmailConfirm
+  changeEmail,
+  changeEmailConfirm
 };

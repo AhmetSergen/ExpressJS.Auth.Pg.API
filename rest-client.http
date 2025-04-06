@@ -47,7 +47,7 @@ content-type: application/json
 }
 
 ### [GET] Check Access Token
-# Check if token is verified via veriftToken middleware
+# Check if token is verified via veriftToken middleware that reads accessToken from "Authorization" request header 
 # Use AccessToken created from generateAccessToken controller for Bearer token
 GET http://localhost:3000/api/auth/checkAccessToken
 content-type: application/json
@@ -87,22 +87,22 @@ content-type: application/json
 }
 
 ### [POST] Change Email 
-POST http://localhost:3001/api/auth/changeEmail
+POST http://localhost:3000/api/auth/changeEmail
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Nzk4MDMwYmU0MDY5ZThmNGU2NDk0MDciLCJlbWFpbCI6InRlc3QxQHRlc3QuY29tIiwiaWF0IjoxNzM4MDE1NjQ1LCJleHAiOjE3MzgwMTY1NDV9.kSJ_-WClDz1M-mcrP5btX_rWsj3TnPfPVc9z8OVM5bg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIxIiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDM5NTg0MzIsImV4cCI6MTc0Mzk1OTMzMn0.piipKsYKJ_crBTcC1QacEiAZpEzidEA2ovfvBCpagK4
 
 {
-    "provisionalEmail": "test2@test.com"
+    "provisionalEmail": "test2@testmail.com"
 }
 
 ### [POST] Change Email Confirm 
 # Click the link to confirm your new email change: http://localhost:9000/confirm-email-change/<changeEmailToken>
-POST http://localhost:3001/api/auth/resetPasswordConfirm
+POST http://localhost:3000/api/auth/changeEmailConfirm
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Nzk4MDMwYmU0MDY5ZThmNGU2NDk0MDciLCJlbWFpbCI6InRlc3QxQHRlc3QuY29tIiwiaWF0IjoxNzM4MDE1NjQ1LCJleHAiOjE3MzgwMTY1NDV9.kSJ_-WClDz1M-mcrP5btX_rWsj3TnPfPVc9z8OVM5bg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIxIiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDM5NTg0MzIsImV4cCI6MTc0Mzk1OTMzMn0.piipKsYKJ_crBTcC1QacEiAZpEzidEA2ovfvBCpagK4
 
 {
-    "changeEmailToken": "ea7d66bd-38dc-4385-8ea5-6246fc604363"
+    "changeEmailToken": "0832e2b0-11b6-4aa7-9ef2-0c4df9c12c7f"
 }
 
 

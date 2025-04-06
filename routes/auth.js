@@ -16,6 +16,7 @@ const verifyToken = require('../helpers/verifyToken');
 router.post("/register", rateLimiter(5, 10), authController.register);
 
 // TODO: send confirmation route
+// TODO: add middlewares to all routes
 
 // [POST] Login
 router.post("/login", rateLimiter(5, 10), authController.login);
@@ -27,7 +28,7 @@ router.post("/generateAccessToken", authController.generateAccessToken)
 router.get("/checkAccessToken", [rateLimiter(5, 10), verifyToken], authController.checkAccessToken)
 
 // [POST] Confirm Email Token
-router.post("/confirmEmailToken", verifyToken, authController.confirmEmailToken)
+router.post("/confirmEmailToken", [rateLimiter(5, 10), verifyToken], authController.confirmEmailToken)
 
 // [POST] Reset Password 
 router.post("/resetPassword", authController.resetPassword)
@@ -35,11 +36,11 @@ router.post("/resetPassword", authController.resetPassword)
 // [POST] Reset Password Confirm
 router.post("/resetPasswordConfirm", authController.resetPasswordConfirm)
 
-// // [POST] Change Email
-// router.post('/changeEmail', [rateLimiter(5, 10), verifyToken], authController.changeEmail);
+// [POST] Change Email
+router.post('/changeEmail', [rateLimiter(5, 10), verifyToken], authController.changeEmail);
 
-// // [POST] Change Email Confirm
-// router.post('/changeEmailConfirm', [rateLimiter(5, 10), verifyToken], authController.changeEmailConfirm);
+// [POST] Change Email Confirm
+router.post('/changeEmailConfirm', [rateLimiter(5, 10), verifyToken], authController.changeEmailConfirm);
 
 // // Test routes:
 // router.post("/generateTestToken", testController.generateTestToken)

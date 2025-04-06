@@ -52,6 +52,21 @@ User.init(
       type: DataTypes.DATE, // Matches `TIMESTAMP` in PostgreSQL
       allowNull: true,
     },
+    changeEmailToken: {
+      field: 'change_email_token', // Maps to the actual database column
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    changeEmailProvisional: {
+      field: 'change_email_provisional', // Maps to the actual database column
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    changeEmailExpiry: {
+      field: 'change_email_expiry', // Maps to the actual database column
+      type: DataTypes.DATE, // Matches `TIMESTAMP` in PostgreSQL
+      allowNull: true,
+    },
   },
   {
     sequelize,

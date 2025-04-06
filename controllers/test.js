@@ -1,4 +1,5 @@
 // Controllers: The layer responsible for business like handling requests, performing operations by interacting with the model, and sending responses back to the client.
+// test controller for simple generate and check access token functions.
 
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
@@ -39,6 +40,6 @@ const checkTestToken = async (req, res) => {
 };
 
 module.exports = {
-  checkTestToken,
-  generateTestToken
+  generateTestToken, 
+  checkTestToken
 };

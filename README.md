@@ -5,6 +5,7 @@ Start Project by running one of the methods listed below.
 Mailtrap is used for SMTP mail service.
 For quick request examples rest-client.http file could be used.
 
+!!! Change SECRET_ACCESS_TOKEN and SECRET_REFRESH_TOKEN when deploying production
 
 ## Start Project
 

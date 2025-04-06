@@ -1,3 +1,5 @@
+// This middleware gets Authorization token in request header and checks if it is valid
+
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {

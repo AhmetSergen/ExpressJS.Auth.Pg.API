@@ -12,6 +12,9 @@ CREATE TABLE auth.tb_users (
 	password_reset_token VARCHAR(255),
 	password_reset_provisional VARCHAR(255), 
 	password_reset_expiry TIMESTAMP WITH TIME ZONE, -- UTC 
+	change_email_token VARCHAR(255),
+	change_email_provisional VARCHAR(255), 
+	change_email_expiry TIMESTAMP WITH TIME ZONE, -- UTC 
 	created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- UTC 
 	updated_at TIMESTAMP WITH TIME ZONE -- UTC 
 );
