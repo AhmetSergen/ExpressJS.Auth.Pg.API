@@ -2,7 +2,7 @@
 
 const express = require('express');
 const authController = require('../controllers/auth');
-//const testController = require('../controllers/test');
+const testController = require('../controllers/test');
 const router = express.Router(); // router initialization
 
 // API middleware
@@ -14,9 +14,6 @@ const verifyToken = require('../helpers/verifyToken');
 
 // [POST] Register
 router.post("/register", rateLimiter(5, 10), authController.register);
-
-// TODO: send confirmation route
-// TODO: add middlewares to all routes
 
 // [POST] Login
 router.post("/login", rateLimiter(5, 10), authController.login);
@@ -42,8 +39,9 @@ router.post('/changeEmail', [rateLimiter(5, 10), verifyToken], authController.ch
 // [POST] Change Email Confirm
 router.post('/changeEmailConfirm', [rateLimiter(5, 10), verifyToken], authController.changeEmailConfirm);
 
-// // Test routes:
-// router.post("/generateTestToken", testController.generateTestToken)
-// router.get("/checkTestToken", [rateLimiter(5, 10), verifyToken], testController.checkTestToken)
+// Test Routes:
+// Test routes for simple generate and check access token functions. Unnecessary for live production  
+router.post("/generateTestToken", testController.generateTestToken)
+router.get("/checkTestToken", verifyToken, testController.checkTestToken)
 
 module.exports = router;

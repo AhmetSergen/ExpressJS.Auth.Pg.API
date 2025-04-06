@@ -1,11 +1,14 @@
 # ExpressJS.Auth.Pg.API
 
+This is a boilerplate project for running Authorization API with ExpressJS.
 You need PostgreSQL installed to run project.
 Start Project by running one of the methods listed below.
 Mailtrap is used for SMTP mail service.
-For quick request examples rest-client.http file could be used.
+For request examples check rest-client.http file. 
 
 !!! Change SECRET_ACCESS_TOKEN and SECRET_REFRESH_TOKEN when deploying production
+You may close logging SQL queries on console log in database.js file via disabling logging: property. 
+
 
 ## Start Project
 

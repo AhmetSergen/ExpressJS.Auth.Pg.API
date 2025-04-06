@@ -113,11 +113,9 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    console.log("# login");
     const { error } = validation.loginSchema.validate(req.body); // Extract error property from returned object
 
     if (error) {
-      console.log("# error: ", error);
       res.status(400).json({
         status: 400,
         messsage: "INPUT_ERRORS",
@@ -125,7 +123,6 @@ const login = async (req, res) => {
         original: error._original,
       });
     } else {
-      console.log("# else");
       //const user = await User.findOne({ email: req.body.email }); // old
       const user = await User.findOne({ where: { email: req.body.email } });
 
@@ -138,25 +135,15 @@ const login = async (req, res) => {
         return;
       }
 
-      console.log("# user: ", user);
-      console.log("# user.id: ", user.id);
-
       const userTokens = await UserToken.findAll({ where: { id: user.id } });
-
-      console.log("# userTokens: ", userTokens);
 
       // Check if the email is correct
       if (user) {
-
-        console.log("# if user true");
-
         // Check if password is correct
         const validatePassword = await bcrypt.compare(
           req.body.password,
           user.password
         );
-
-        console.log("validatePassword: ", validatePassword);
 
         if (validatePassword) {
           // Generate access & refresh token
@@ -210,7 +197,6 @@ const login = async (req, res) => {
       }
     }
   } catch (err) {
-    console.log(err);
     res.status(400).json({ error: { status: 400, message: "BAD_REQUEST" } });
   }
 };
@@ -226,14 +212,10 @@ const generateAccessToken = async (req, res) => {
         process.env.SECRET_REFRESH_TOKEN
       );
 
-      console.log("# decodeRefreshToken: ", decodeRefreshToken);
-
       const user = await User.findOne({ where: { email: decodeRefreshToken.email } });
 
       // const existingRefreshTokens = user.security.tokens; // Old
       const existingRefreshTokens = await UserToken.findAll({ where: { userId: user.id } });
-
-      console.log("# existingRefreshTokens: ", existingRefreshTokens);
 
       // Check if refresh token is in document
       if (
@@ -275,7 +257,6 @@ const generateAccessToken = async (req, res) => {
 };
 
 const checkAccessToken = async (req, res) => {
-  console.log("# checkAccessToken");
   res.status(200).json({
     success: {
       status: 200,
@@ -289,8 +270,6 @@ const confirmEmailToken = async (req, res) => {
   try {
     const reqEmailToken = req.body.emailToken;
 
-    console.log("# reqEmailToken: ", reqEmailToken);
-
     if (reqEmailToken !== null) {
       const accessToken = req.header("Authorization").split(" ")[1];
       const decodedAccessToken = jwt.verify(
@@ -301,17 +280,10 @@ const confirmEmailToken = async (req, res) => {
       // Check if user exists
       const user = await User.findOne({ where: { email: decodedAccessToken.email }});
 
-      console.log("# user: ", user.emailToken);
-
       // Check if email is already confirmed
       if (!user.emailConfirmed) {
         // Check if provided email token matches user's email token
         if (reqEmailToken === user.emailToken) {
-          // await User.updateOne( // Old
-          //   { email: decodedAccessToken.email },
-          //   { $set: { emailConfirmed: true, emailToken: null } }
-          // );
-
           await User.update(
             { 
               emailConfirmed: true, 
@@ -353,8 +325,6 @@ const resetPassword = async (req, res) => {
       return;
     }
 
-    // TODO: eski parola ile teyit et, emaile ait parolayı kullanicidan al ve kontrol et
-
     if (
       req.body.provisionalPassword.length >= 6 &&
       req.body.provisionalPassword.length <= 255
@@ -370,8 +340,6 @@ const resetPassword = async (req, res) => {
       const passwordResetToken = uuidv4();
       const expiresIn = moment().add(10, "m").toISOString();
 
-      console.log("# expiresIn: ", expiresIn);
-
       // Update user with password token
       await User.update(
         {
@@ -383,22 +351,6 @@ const resetPassword = async (req, res) => {
           where: { email: req.body.email },
         }
       );
-
-
-      // await User.findOneAndUpdate( // Old
-      //   { email: req.body.email },
-      //   {
-      //     $set: {
-      //       "security.passwordReset": {
-      //         token: passwordResetToken,
-      //         provisionalPassword: hashedPassword,
-      //         expiry: expiresIn,
-      //       },
-      //     },
-      //   }
-      // );
-
-
 
       await sendPasswordResetConfirmation({
         email: req.body.email,
@@ -420,31 +372,13 @@ const resetPassword = async (req, res) => {
 };
 
 const resetPasswordConfirm = async (req, res) => {
-  console.log("# enter");
   try {
-    console.log("# try");
-
     const user = await User.findOne({ where: { email: req.body.email }});
-    //console.log("user:", user);
-    console.log("# log2");
-    console.log("# user.passwordResetToken",user.passwordResetToken);
-    console.log("# req.body.passwordResetToken", req.body.passwordResetToken);
-
 
     // Check if supplied passwordResetToken matches with the user's stored one
     if (user.passwordResetToken === req.body.passwordResetToken) {
-      console.log("# MATCHED");
-      //console.log("# user",user);
-      console.log("# user.passwordResetExpiry",user.passwordResetExpiry);
-      console.log("# new date", new Date());
-      console.log("# new Date(user.passwordResetExpiry)", new Date(user.passwordResetExpiry));
-      console.log("# user.passwordResetExpiry", user.passwordResetExpiry);
-
-
       // Check if password reset token is expired
       if (new Date() <= new Date(user.passwordResetExpiry)) {
-        console.log("# log3");
-
         await User.update(
           {
             password: user.passwordResetProvisional, // New password
@@ -455,26 +389,11 @@ const resetPasswordConfirm = async (req, res) => {
           { where: { email: req.body.email}, }
         );
 
-        
-        // await User.update( // Old
-        //   { email: req.body.email },
-        //   {
-        //     $set: {
-        //       password: user.security.passwordReset.provisionalPassword,
-        //       "security.passwordReset.token": null,
-        //       "security.passwordReset.provisionalPassword": null,
-        //       "security.passwordReset.expiry": null,
-        //     },
-        //   }
-        // );
-
         res.status(200).json({
           success: { status: 200, message: "PASSWORD_RESET_SUCCESS" },
         });
       } else { // Password reset token is expired
-        console.log("# Expired");
-
-        await User.updateOne( // TODO: çevir
+        await User.update( 
           {
             passwordResetToken: null,
             passwordResetProvisional: null,
@@ -482,18 +401,6 @@ const resetPasswordConfirm = async (req, res) => {
           },
           { where: {email: req.body.email}, }
         );
-
-
-        // await User.updateOne( // Old
-        //   { email: req.body.email },
-        //   {
-        //     $set: {
-        //       "security.passwordReset.token": null,
-        //       "security.passwordReset.provisionalPassword": null,
-        //       "security.passwordReset.expiry": null,
-        //     },
-        //   }
-        // );
 
         res
           .status(401)
@@ -513,19 +420,12 @@ const resetPasswordConfirm = async (req, res) => {
   }
 };
 
-
 const changeEmail = async (req, res) => {
   try {
-    console.log("# changeEmail");
     if (validation.registerSchema.validate({email: req.body.provisionalEmail})) {
-      console.log("# valid");
-
       // Decode Access Token
       const accessToken = req.header('Authorization').split(' ')[1];
       const decodedAccessToken = jwt.verify(accessToken, process.env.SECRET_ACCESS_TOKEN);
-
-      console.log("# accessToken: ", accessToken);
-      console.log("# decodedAccessToken: ", decodedAccessToken);
 
       // Check if email exists
       const provisionalEmailExists = await User.findOne({ where: {email: req.body.provisionalEmail}, attributes: ['id']});
@@ -534,9 +434,7 @@ const changeEmail = async (req, res) => {
       if (!provisionalEmailExists) {
         // Generate an email confirmation token
         const changeEmailToken = uuidv4();
-        const changeEmailExpiry = moment().add(10, 'm').toISOString(); // Adds to UTC time // TODO: .env dosyasindan al
-
-        console.log("# changeEmailExpiry: ", changeEmailExpiry);
+        const changeEmailExpiry = moment().add(process.env.CHANGE_EMAIL_TOKEN_EXPIRY_MINUTES, 'm').toISOString(); // Adds to UTC time 
 
         const [updatedCount, updatedRows] = await User.update(
           {
@@ -551,21 +449,6 @@ const changeEmail = async (req, res) => {
         );
 
         const updatedUser = updatedRows[0]; // this will be your updated user
-
-        console.log("# update completed-UpdatedUser: ");
-
-        // // Update user with change email token
-        // const user = await User.findOneAndUpdate({email: decodedAccessToken.email}, { // Old
-        //   $set: {
-        //     'security.changeEmail': {
-        //       token: changeEmailToken,
-        //       provisionalEmail: req.body.provisionalEmail,
-        //       expiry: expiresIn,
-        //     },
-        //   },
-        // });
-
-        //await changeEmailConfirmation({email: user.email, emailToken: changeEmailToken});
 
         await sendChangeEmailConfirmation(updatedUser);
 
@@ -583,7 +466,6 @@ const changeEmail = async (req, res) => {
 
 
 const changeEmailConfirm = async (req, res) => {
-  console.log("# changeEmailConfirm");
   try {
     // Decode Access Token
     const accessToken = req.header('Authorization').split(' ')[1];
@@ -611,14 +493,6 @@ const changeEmailConfirm = async (req, res) => {
             { where: {email: decodedAccessToken.email}},
           );
 
-          // await User.updateOne({email: decodedAccessToken.email}, { // Old
-          //   $set: {
-          //     'email': user.security.changeEmail.provisionalEmail,
-          //     'security.changeEmail.token': null,
-          //     'security.changeEmail.provisionalEmail': null,
-          //     'security.changeEmail.expiry': null,
-          //   },
-          // });
           res.status(200).json({success: {status: 200, message: 'CHANGE_EMAIL_SUCCESS'}});
         } else {
           res.status(401).json({success: {status: 401, message: 'CHANGE_EMAIL_TOKEN_EXPIRED'}});
@@ -637,14 +511,6 @@ const changeEmailConfirm = async (req, res) => {
         { where: {email: decodedAccessToken.email}}
       );
 
-      // await User.updateOne({email: decodedAccessToken.email}, { // Old
-      //   $set: {
-      //     'security.changeEmail.token': null,
-      //     'security.changeEmail.provisionalEmail': null,
-      //     'security.changeEmail.expiry': null,
-      //   },
-      // });
-
       res.status(409).json({error: {status: 409, message: 'PROVISIONAL_EMAIL_ALREADY_EXISTS'}});
     }
   } catch (err) {
@@ -655,47 +521,22 @@ const changeEmailConfirm = async (req, res) => {
 const addRefreshToken = async (user, userTokens, refreshToken) => {
   // Add new refresh token to tokens table. Existing refresh token count is limited.
   try {
-    console.log("# addRefreshToken BEGIN");
-
     // const existingRefreshTokens = user.security.tokens; // old
     const existingRefreshTokens = userTokens;
 
-    console.log("# existingRefreshTokens:", existingRefreshTokens);
-    console.log("# existingRefreshTokens.length:", existingRefreshTokens.length);
-
     // Check if theres less than 5 (limit can be changed)
     if (existingRefreshTokens.length < process.env.REFRESH_TOKEN_STORAGE_COUNT) {
-      console.log("# existingRefreshTokens.length < 5 BEGIN")
-
-      // Push the new token
-      // await User.updateOne( // Old
-      //   { email: user.email },
-      //   {
-      //     $push: {
-      //       "security.tokens": {
-      //         refreshToken: refreshToken,
-      //         createdAt: new Date(),
-      //       },
-      //     },
-      //   }
-      // );
-
       // Push the new token
       await UserToken.create({
         userId: user.id,  // Foreign key reference to `tb_users`
         refreshToken: refreshToken,
       });
-
-      console.log("# UserToken create complete");
-
     } else { // Otherwise remove the last token 
       // Find the oldest token (ordered by created_at ASC)
       const oldestToken = await UserToken.findOne({
         where: { userId: user.id },
         order: [['created_at', 'ASC']], // Order by oldest first
       });
-
-      console.log("# oldestToken:", oldestToken);
       
       // Remove oldest token for this user
       await UserToken.destroy({
@@ -707,34 +548,6 @@ const addRefreshToken = async (user, userTokens, refreshToken) => {
         userId: user.id,  // Foreign key reference to `tb_users`
         refreshToken: refreshToken,
       });
-
-      // // Otherwise remove the last token
-      // await User.updateOne(
-      //   { email: user.email },
-      //   {
-      //     $pull: {
-      //       "security.tokens": {
-      //         _id: existingRefreshTokens[0]._id,
-      //       },
-      //     },
-      //   }
-      // );
-
-
-      // // Push the new token
-      // await User.updateOne( // Old
-      //   { email: user.email },
-      //   {
-      //     $push: {
-      //       "security.tokens": {
-      //         refreshToken: refreshToken,
-      //         createdAt: new Date(),
-      //       },
-      //     },
-      //   }
-      // );
-
-
     }
     return true;
   } catch (err) {
@@ -779,7 +592,6 @@ const sendPasswordResetConfirmation = async (user) => {
 };
 
 const sendChangeEmailConfirmation = async (user) => { // TODO: direkt user degil de ToEmail ve token al
-  console.log("# sendChangeEmailConfirmation");
   var transport = nodemailer.createTransport({
     host: process.env.NODEMAILER_HOST,
     port: process.env.NODEMAILER_PORT,
@@ -789,16 +601,12 @@ const sendChangeEmailConfirmation = async (user) => { // TODO: direkt user degil
     },
   });
 
-  console.log("# transport:");
-
   const info = await transport.sendMail({
-    from: process.env.FROM_MAIL, // TODO: froım maili .env den al
+    from: process.env.FROM_MAIL, 
     to: user.email,
     subject: "Change Your Email",
     text: `Click the link to confirm your email change: http://localhost:9000/confirm-change-email/${user.changeEmailToken}`,
   });
-
-  console.log("# info:", info);
 };
 
 module.exports = {

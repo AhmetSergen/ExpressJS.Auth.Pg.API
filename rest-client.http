@@ -68,6 +68,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1IiwiZW1ha
 
 ### [POST] Reset Password 
 # Sends password reset mail with user's passwordResetToken
+# Since user requests password reset, not logged in, does not require Authorization token (AccessToken)
 POST http://localhost:3000/api/auth/resetPassword
 content-type: application/json
 

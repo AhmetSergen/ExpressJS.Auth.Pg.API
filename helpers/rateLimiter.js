@@ -1,7 +1,6 @@
 const rateLimit = require('express-rate-limit');
 
 const rateLimiter = (limit, timeFrameInMinutes) => {
-    console.log("# rateLimiter");
     return rateLimit({
         max: limit,
         windowMs: timeFrameInMinutes * 60 * 1000,
