@@ -30,6 +30,8 @@ const register = async (req, res) => {
           status: 409, // Conflict
           message: "EMAIL_ALREADY_EXISTS",
         });
+
+        return;
       }
 
       // Encrypt password

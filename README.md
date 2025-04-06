@@ -1,65 +1,64 @@
 # ExpressJS.Auth.Pg.API
 
 This is a boilerplate project for running Authorization API with ExpressJS.
-You need PostgreSQL installed to run project.
+You need PostgreSQL installed to run project. Required DB queries to initialize DB tables are stored in db_create_table_queries.sql file. 
 Start Project by running one of the methods listed below.
 Mailtrap is used for SMTP mail service.
 For request examples check rest-client.http file. 
 
 !!! Change SECRET_ACCESS_TOKEN and SECRET_REFRESH_TOKEN when deploying production
-You may close logging SQL queries on console log in database.js file via disabling logging: property. 
+You may open/close logging SQL queries on console log in database.js file via changing logging: property. 
 
 
 ## Start Project
 
 ### Run by npm script
-npm run prod
 npm run dev
 
-### start server without script:
-node server.js
+### Start server without script
+node index.js
 
-### start server with nodemon(without script):
+### Start server without script (with nodemon)
 nodemon server.js
 
-### start server (with script):
+### Start server (with script)
 npm start
 
 
 ## Installed Deps
 
-### initialize node project
+### Initialize node project
 npm init -y
 
-### install express:
+### Install express:
 npm install express --save
 
-### install npm nodemon (node monitor package)
+### Install npm nodemon (node monitor package)
 npm i nodemon --save-dev
 
-### env package
+### Env package
 npm install dotenv
 
-### install Sequelize for postgresql
+### Install Sequelize for postgresql
 npm install sequelize pg pg-hstore dotenv
 
 ### Express Rate Limit
 npm i express-rate-limit
 
-### install jwt
+### Install jwt
 npm i jsonwebtoken
 
-### install joi
+### Install joi
 npm i joi --save
 
-### install bcrypt
+### Install bcrypt
 npm i bcrypt --save
 
-### install uuid
+### Install uuid
 npm i uuid --save
 
-### install nodemailer for smtp
+### Install nodemailer for smtp
 npm i nodemailer
 
-### install moment.js
+### Install moment.js
 npm i moment

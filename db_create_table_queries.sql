@@ -1,5 +1,6 @@
 --# PostgreSQL Queries
 -- Run these queries to initialize and configure the database
+-- Delete this file when deploying production
 
 CREATE SCHEMA auth;
 
@@ -19,7 +20,7 @@ CREATE TABLE auth.tb_users (
 	updated_at TIMESTAMP WITH TIME ZONE -- UTC 
 );
 CREATE INDEX idx_tb_users_email_hash ON auth.tb_users USING hash (email);
--- Hast indexes are faster for equality comparisons (=) compared to default B-tree indexes.
+-- Note: Hast indexes are faster for equality comparisons (=) compared to default B-tree indexes.
 
 
 CREATE TABLE auth.tb_users_tokens (

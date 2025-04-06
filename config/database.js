@@ -4,10 +4,10 @@ const { Sequelize } = require('sequelize');
 const sequelize = new Sequelize(
   process.env.DATABASE_URL, {
     dialect: 'postgres',
-    database: 'AuthDB',
-    schema: 'auth',
+    database: process.env.DATABASE_NAME,
+    schema: process.env.SCHEMA_NAME,
     timezone: '+00:00', // Force UTC 
-    logging: console.log, // Enable logging to debug SQL queries
+    //logging: console.log, // Enable logging to debug SQL queries
   }
 );
 
