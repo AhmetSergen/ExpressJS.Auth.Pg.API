@@ -6,6 +6,7 @@ Mailtrap is used for SMTP mail service. Update .env file according to your conne
 For request examples check rest-client.http file. 
 
 You may open/close logging SQL queries on console log in database.js file via changing logging: property. 
+
 **!!! Change SECRET_ACCESS_TOKEN and SECRET_REFRESH_TOKEN when deploying production.**
 
 Run stated commands in command terminal inside project folder to intialize, build and run the project: 
