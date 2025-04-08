@@ -14,6 +14,7 @@ Start Project by running one of the methods listed below:
 
 ### npm install
 *That reads package.json and installs all required packages (dependencies) into the node_modules folder.*
+
     npm install
 
 ### Run by npm script
