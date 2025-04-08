@@ -43,7 +43,7 @@ POST http://localhost:3000/api/auth/generateAccessToken
 content-type: application/json
 
 {
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1IiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDMyNTA5NzcsImV4cCI6MTc0Mzg1NTc3N30.SSmXxhlYcVjoH-LIicQiY87qCCgwsam5KayDzcyqwGc"
+    "refreshToken": "<refresh_token>"
 }
 
 ### [GET] Check Access Token
@@ -51,7 +51,7 @@ content-type: application/json
 # Use AccessToken created from generateAccessToken controller for Bearer token
 GET http://localhost:3000/api/auth/checkAccessToken
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1IiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDMyNTA5OTIsImV4cCI6MTc0MzI1MTg5Mn0.sEMreSiVGIsVxoErd4pMxmvt980caaj5UANoKioh8ME
+Authorization: Bearer <access_token>
 
 ### [POST] Confirm Email Token
 # Get email token from confirmation mail 
@@ -60,10 +60,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1IiwiZW1ha
 # Email example: "Click the link to confirm your email: http://localhost:9000/confirm-email/<emailToken>"
 POST http://localhost:3000/api/auth/confirmEmailToken
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1IiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDMyNTA5OTIsImV4cCI6MTc0MzI1MTg5Mn0.sEMreSiVGIsVxoErd4pMxmvt980caaj5UANoKioh8ME
+Authorization: Bearer <access_token>
 
 {
-    "emailToken": "de2157ac-4cb7-48ff-b7db-148c400a8d3e"
+    "emailToken": "<email_token>"
 }
 
 ### [POST] Reset Password 
@@ -74,7 +74,7 @@ content-type: application/json
 
 {
     "email": "test1@testmail.com",
-    "provisionalPassword": "testtest2"
+    "provisionalPassword": "newtestpassword"
 }
 
 ### [POST] Reset Password Confirm
@@ -84,26 +84,26 @@ content-type: application/json
 
 {
     "email": "test1@testmail.com",
-    "passwordResetToken": "86919ad0-32b1-40e1-a71d-b3547f96c131"
+    "passwordResetToken": "password_reset_token"
 }
 
 ### [POST] Change Email 
 POST http://localhost:3000/api/auth/changeEmail
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIxIiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDM5NTg0MzIsImV4cCI6MTc0Mzk1OTMzMn0.piipKsYKJ_crBTcC1QacEiAZpEzidEA2ovfvBCpagK4
+Authorization: Bearer <access_token>
 
 {
-    "provisionalEmail": "test2@testmail.com"
+    "provisionalEmail": "newtest1@testmail.com"
 }
 
 ### [POST] Change Email Confirm 
 # Click the link to confirm your new email change: http://localhost:9000/confirm-email-change/<changeEmailToken>
 POST http://localhost:3000/api/auth/changeEmailConfirm
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIxIiwiZW1haWwiOiJ0ZXN0MUB0ZXN0bWFpbC5jb20iLCJpYXQiOjE3NDM5NTg0MzIsImV4cCI6MTc0Mzk1OTMzMn0.piipKsYKJ_crBTcC1QacEiAZpEzidEA2ovfvBCpagK4
+Authorization: Bearer <access_token>
 
 {
-    "changeEmailToken": "0832e2b0-11b6-4aa7-9ef2-0c4df9c12c7f"
+    "changeEmailToken": "<change_email_token>"
 }
 
 
@@ -119,4 +119,4 @@ GET http://localhost:3001/api/test/checkTestToken
 ### [GET] Check Test Toke (with token)
 # Send req with token in headers (get token with generateToken controller)
 GET http://localhost:3001/api/test/checkTestToken
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpYXQiOjE3MzU3NDY2NzMsImV4cCI6MTczNTc0NzU3M30.QwATy_M63zhYHmFzmv3_31sQd1ZlZII4jtrLcwfQy_A
+Authorization: Bearer <access_token>
