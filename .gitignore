@@ -1,7 +1,5 @@
 node_modules/
 dist/
 build/
-.env
-rest-client.http
 .qodo/
 .codegpt
