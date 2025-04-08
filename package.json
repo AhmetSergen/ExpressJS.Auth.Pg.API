@@ -1,10 +1,10 @@
 {
-  "name": "api-lecture-10",
+  "name": "expressjs-auth-pg-api",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Boilerplate project for running Authorization API with ExpressJS.",
+  "main": "server.js",
   "scripts": {
-    "dev": "node index.js"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
