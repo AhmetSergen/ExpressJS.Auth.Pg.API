@@ -5,14 +5,14 @@ You need PostgreSQL installed to run project. Required DB queries to initialize 
 Mailtrap is used for SMTP mail service. Update .env file according to your connection string
 For request examples check rest-client.http file. 
 
-**!!! Change SECRET_ACCESS_TOKEN and SECRET_REFRESH_TOKEN when deploying production**
 You may open/close logging SQL queries on console log in database.js file via changing logging: property. 
+**!!! Change SECRET_ACCESS_TOKEN and SECRET_REFRESH_TOKEN when deploying production.**
 
-Start Project by running one of the methods listed below: 
+Run stated commands in command terminal inside project folder to intialize, build and run the project: 
 
 ## Start Project
 
-Run stated commands in command terminal inside project folder.
+Start Project by running one of the methods listed below: 
 
 ### Install Dependencies
 *That reads package.json and installs all required packages (dependencies) into the node_modules folder.*
@@ -40,6 +40,8 @@ Run stated commands in command terminal inside project folder.
 
 
 ## Installed Deps
+
+Installed dependecy packages and descriptions are listed below: 
 
 ### Initialize node project
 *Initialized node package manager. Create a package.json file.*
