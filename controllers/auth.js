@@ -6,8 +6,8 @@ const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
 const nodemailer = require("nodemailer");
 const moment = require("moment");
-const User = require('../models/user.model'); 
-const UserToken = require('../models/user-tokens.model'); 
+const User = require("../models/user.model");
+const UserToken = require("../models/user-tokens.model");
 
 const register = async (req, res) => {
   try {
@@ -37,7 +37,7 @@ const register = async (req, res) => {
       // Encrypt password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(req.body.password, salt);
-      
+
       // Create new user instance. Returns the inserted user record as object
       const newUser = await User.create({
         email: req.body.email,
@@ -45,7 +45,7 @@ const register = async (req, res) => {
         emailConfirmed: false,
         emailToken: uuidv4(),
         passwordResetToken: null,
-        passwordResetProvisional: null, 
+        passwordResetProvisional: null,
         passwordResetExpiry: null,
       });
 
@@ -71,7 +71,7 @@ const register = async (req, res) => {
 
       // Assign the refresh token to user with foreign key
       await UserToken.create({
-        userId: newUser.id,  // FK to tb_users
+        userId: newUser.id, // FK to tb_users
         refreshToken: refreshToken,
       });
 
@@ -85,7 +85,7 @@ const register = async (req, res) => {
           success: {
             status: 200, // Success
             message: "REGISTER_SUCCESS",
-            accessToken: accessToken, // Access token should be stored in a cookie on the front end. 
+            accessToken: accessToken, // Access token should be stored in a cookie on the front end.
             refreshToken: refreshToken, // Refresh token should be stored in a Secure, HttpOnly cookie on the front end.
             email: newUser.email,
           },
@@ -103,7 +103,9 @@ const register = async (req, res) => {
       errorMessage = err;
     }
 
-    res.status(errorStatus).json({ error: { status: errorStatus, message: errorMessage } });
+    res
+      .status(errorStatus)
+      .json({ error: { status: errorStatus, message: errorMessage } });
   }
 };
 
@@ -121,7 +123,7 @@ const login = async (req, res) => {
     } else {
       const user = await User.findOne({ where: { email: req.body.email } });
 
-      if(!user) {
+      if (!user) {
         res.status(404).json({
           status: 404, // Not Found
           message: "USER_NOT_FOUND",
@@ -206,9 +208,13 @@ const generateAccessToken = async (req, res) => {
         process.env.SECRET_REFRESH_TOKEN
       );
 
-      const user = await User.findOne({ where: { email: decodeRefreshToken.email } });
+      const user = await User.findOne({
+        where: { email: decodeRefreshToken.email },
+      });
 
-      const existingRefreshTokens = await UserToken.findAll({ where: { userId: user.id } });
+      const existingRefreshTokens = await UserToken.findAll({
+        where: { userId: user.id },
+      });
 
       // Check if refresh token is in document
       if (
@@ -271,19 +277,21 @@ const confirmEmailToken = async (req, res) => {
       );
 
       // Check if user exists
-      const user = await User.findOne({ where: { email: decodedAccessToken.email }});
+      const user = await User.findOne({
+        where: { email: decodedAccessToken.email },
+      });
 
       // Check if email is already confirmed
       if (!user.emailConfirmed) {
         // Check if provided email token matches user's email token
         if (reqEmailToken === user.emailToken) {
           await User.update(
-            { 
-              emailConfirmed: true, 
-              emailToken: null 
+            {
+              emailConfirmed: true,
+              emailToken: null,
             },
-            { 
-              where: { email: decodedAccessToken.email } 
+            {
+              where: { email: decodedAccessToken.email },
             }
           );
           res
@@ -309,12 +317,13 @@ const confirmEmailToken = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
-    const user = await User.findOne({ where: { email: req.body.email }});
+    const user = await User.findOne({ where: { email: req.body.email } });
 
-    if(!user) { // If email does not belong to any user
+    if (!user) {
+      // If email does not belong to any user
       res
-      .status(404)
-      .json({ error: { status: 404, message: "EMAIL_NOT_FOUND" } });
+        .status(404)
+        .json({ error: { status: 404, message: "EMAIL_NOT_FOUND" } });
       return;
     }
 
@@ -350,20 +359,23 @@ const resetPassword = async (req, res) => {
       res.status(200).json({
         success: { status: 200, message: "PASSWORD_RESET_EMAIL_SENT" },
       });
-
     } else {
       res
         .status(400)
         .json({ error: { status: 400, message: "PASSWORD_INPUT_ERROR" } });
     }
   } catch (err) {
-    res.status(400).json({ error: { status: 400, message: "BAD_REQUEST", messageDetail: err} });
+    res
+      .status(400)
+      .json({
+        error: { status: 400, message: "BAD_REQUEST", messageDetail: err },
+      });
   }
 };
 
 const resetPasswordConfirm = async (req, res) => {
   try {
-    const user = await User.findOne({ where: { email: req.body.email }});
+    const user = await User.findOne({ where: { email: req.body.email } });
 
     // Check if supplied passwordResetToken matches with the user's stored one
     if (user.passwordResetToken === req.body.passwordResetToken) {
@@ -376,54 +388,65 @@ const resetPasswordConfirm = async (req, res) => {
             passwordResetProvisional: null,
             passwordResetExpiry: null,
           },
-          { where: { email: req.body.email}, }
+          { where: { email: req.body.email } }
         );
 
         res.status(200).json({
           success: { status: 200, message: "PASSWORD_RESET_SUCCESS" },
         });
-      } else { // Password reset token is expired
-        await User.update( 
+      } else {
+        // Password reset token is expired
+        await User.update(
           {
             passwordResetToken: null,
             passwordResetProvisional: null,
             passwordResetExpiry: null,
           },
-          { where: {email: req.body.email}, }
+          { where: { email: req.body.email } }
         );
 
-        res
-          .status(401)
-          .json({
-            error: { status: 401, message: "PASSWORD_RESET_TOKEN_EXPIRED" },
-          });
+        res.status(401).json({
+          error: { status: 401, message: "PASSWORD_RESET_TOKEN_EXPIRED" },
+        });
       }
     } else {
-      res
-      .status(401)
-      .json({
+      res.status(401).json({
         error: { status: 401, message: "INVALID_PASSWORD_RESET_TOKEN" },
       });
     }
   } catch (err) {
-    res.status(400).json({ error: { status: 400, message: "BAD_REQUEST", messageDetail: err } });
+    res
+      .status(400)
+      .json({
+        error: { status: 400, message: "BAD_REQUEST", messageDetail: err },
+      });
   }
 };
 
 const changeEmail = async (req, res) => {
   try {
-    if (validation.registerSchema.validate({email: req.body.provisionalEmail})) {
+    if (
+      validation.registerSchema.validate({ email: req.body.provisionalEmail })
+    ) {
       // Decode Access Token
-      const accessToken = req.header('Authorization').split(' ')[1];
-      const decodedAccessToken = jwt.verify(accessToken, process.env.SECRET_ACCESS_TOKEN);
+      const accessToken = req.header("Authorization").split(" ")[1];
+      const decodedAccessToken = jwt.verify(
+        accessToken,
+        process.env.SECRET_ACCESS_TOKEN
+      );
 
       // Check if email exists
-      const provisionalEmailExists = await User.findOne({ where: {email: req.body.provisionalEmail}, attributes: ['id']});
+      const provisionalEmailExists = await User.findOne({
+        where: { email: req.body.provisionalEmail },
+        attributes: ["id"],
+      });
 
       if (!provisionalEmailExists) {
         // Generate an email confirmation token
         const changeEmailToken = uuidv4();
-        const changeEmailExpiry = moment().add(process.env.CHANGE_EMAIL_TOKEN_EXPIRY_MINUTES, 'm').toISOString(); // Adds to UTC time 
+        const changeEmailExpiry = moment()
+          .add(process.env.CHANGE_EMAIL_TOKEN_EXPIRY_MINUTES, "m")
+          .toISOString(); // Adds to UTC time
 
         const [updatedCount, updatedRows] = await User.update(
           {
@@ -439,38 +462,54 @@ const changeEmail = async (req, res) => {
 
         const updatedUser = updatedRows[0]; // this will be your updated user
 
-        await sendChangeEmailConfirmation(updatedUser.email, updatedUser.changeEmailToken);
+        await sendChangeEmailConfirmation(
+          updatedUser.email,
+          updatedUser.changeEmailToken
+        );
 
-        res.status(200).json({success: {status: 200, message: 'CHANGE_EMAIL_CONFIRMATION_SENT'}});
+        res
+          .status(200)
+          .json({
+            success: { status: 200, message: "CHANGE_EMAIL_CONFIRMATION_SENT" },
+          });
       } else {
-        res.status(409).json({error: {status: 409, message: 'EMAIL_ALREADY_EXISTS'}});
+        res
+          .status(409)
+          .json({ error: { status: 409, message: "EMAIL_ALREADY_EXISTS" } });
       }
     } else {
-      res.status(400).json({error: {status: 400, message: 'EMAIL_VALIDATION_ERROR'}});
+      res
+        .status(400)
+        .json({ error: { status: 400, message: "EMAIL_VALIDATION_ERROR" } });
     }
   } catch (err) {
-    res.status(400).json({error: {status: 400, message: 'BAD_REQUEST'}});
+    res.status(400).json({ error: { status: 400, message: "BAD_REQUEST" } });
   }
 };
 
 const changeEmailConfirm = async (req, res) => {
   try {
     // Decode Access Token
-    const accessToken = req.header('Authorization').split(' ')[1];
-    const decodedAccessToken = jwt.verify(accessToken, process.env.SECRET_ACCESS_TOKEN);
+    const accessToken = req.header("Authorization").split(" ")[1];
+    const decodedAccessToken = jwt.verify(
+      accessToken,
+      process.env.SECRET_ACCESS_TOKEN
+    );
 
     // Fetch user
-    const user = await User.findOne({ where: {email: decodedAccessToken.email}});
+    const user = await User.findOne({
+      where: { email: decodedAccessToken.email },
+    });
 
     // Check if the email exists
-    const emailExistsCheck = await User.findOne({ where: {email: user.changeEmailProvisional}});
+    const emailExistsCheck = await User.findOne({
+      where: { email: user.changeEmailProvisional },
+    });
 
     if (!emailExistsCheck) {
       if (user.changeEmailToken === req.body.changeEmailToken) {
-
         // Check if the change email token is not expired
         if (new Date() <= new Date(user.changeEmailExpiry)) {
-
           await User.update(
             {
               email: user.changeEmailProvisional,
@@ -478,30 +517,47 @@ const changeEmailConfirm = async (req, res) => {
               changeEmailProvisional: null,
               changeEmailExpiry: null,
             },
-            { where: {email: decodedAccessToken.email}},
+            { where: { email: decodedAccessToken.email } }
           );
 
-          res.status(200).json({success: {status: 200, message: 'CHANGE_EMAIL_SUCCESS'}});
+          res
+            .status(200)
+            .json({
+              success: { status: 200, message: "CHANGE_EMAIL_SUCCESS" },
+            });
         } else {
-          res.status(401).json({success: {status: 401, message: 'CHANGE_EMAIL_TOKEN_EXPIRED'}});
+          res
+            .status(401)
+            .json({
+              success: { status: 401, message: "CHANGE_EMAIL_TOKEN_EXPIRED" },
+            });
         }
       } else {
-        res.status(401).json({success: {status: 401, message: 'INVALID_CHANGE_EMAIL_TOKEN'}});
+        res
+          .status(401)
+          .json({
+            success: { status: 401, message: "INVALID_CHANGE_EMAIL_TOKEN" },
+          });
       }
-    } else { // Provisional email already exists. Abort email change process
+    } else {
+      // Provisional email already exists. Abort email change process
       await User.update(
         {
           changeEmailToken: null,
           changeEmailProvisional: null,
           changeEmailExpiry: null,
         },
-        { where: {email: decodedAccessToken.email}}
+        { where: { email: decodedAccessToken.email } }
       );
 
-      res.status(409).json({error: {status: 409, message: 'PROVISIONAL_EMAIL_ALREADY_EXISTS'}});
+      res
+        .status(409)
+        .json({
+          error: { status: 409, message: "PROVISIONAL_EMAIL_ALREADY_EXISTS" },
+        });
     }
   } catch (err) {
-    res.status(400).json({error: {status: 400, message: 'BAD_REQUEST'}});
+    res.status(400).json({ error: { status: 400, message: "BAD_REQUEST" } });
   }
 };
 
@@ -511,19 +567,22 @@ const addRefreshToken = async (user, userTokens, refreshToken) => {
     const existingRefreshTokens = userTokens;
 
     // Check if theres less than 5 (limit can be changed)
-    if (existingRefreshTokens.length < process.env.REFRESH_TOKEN_STORAGE_COUNT) {
+    if (
+      existingRefreshTokens.length < process.env.REFRESH_TOKEN_STORAGE_COUNT
+    ) {
       // Push the new token
       await UserToken.create({
-        userId: user.id,  // Foreign key reference to `tb_users`
+        userId: user.id, // Foreign key reference to `tb_users`
         refreshToken: refreshToken,
       });
-    } else { // Otherwise remove the last token 
+    } else {
+      // Otherwise remove the last token
       // Find the oldest token (ordered by created_at ASC)
       const oldestToken = await UserToken.findOne({
         where: { userId: user.id },
-        order: [['created_at', 'ASC']], // Order by oldest first
+        order: [["created_at", "ASC"]], // Order by oldest first
       });
-      
+
       // Remove oldest token for this user
       await UserToken.destroy({
         where: { id: oldestToken.id },
@@ -531,7 +590,7 @@ const addRefreshToken = async (user, userTokens, refreshToken) => {
 
       // Push the new token
       await UserToken.create({
-        userId: user.id,  // Foreign key reference to `tb_users`
+        userId: user.id, // Foreign key reference to `tb_users`
         refreshToken: refreshToken,
       });
     }
@@ -577,7 +636,7 @@ const sendPasswordResetConfirmation = async (toEmail, token) => {
   });
 };
 
-const sendChangeEmailConfirmation = async (toEmail, token) => { 
+const sendChangeEmailConfirmation = async (toEmail, token) => {
   var transport = nodemailer.createTransport({
     host: process.env.NODEMAILER_HOST,
     port: process.env.NODEMAILER_PORT,
@@ -588,7 +647,7 @@ const sendChangeEmailConfirmation = async (toEmail, token) => {
   });
 
   const info = await transport.sendMail({
-    from: process.env.FROM_MAIL, 
+    from: process.env.FROM_MAIL,
     to: toEmail,
     subject: "Change Your Email",
     text: `Click the link to confirm your email change: http://localhost:9000/confirm-change-email/${token}`,
@@ -604,5 +663,5 @@ module.exports = {
   resetPassword,
   resetPasswordConfirm,
   changeEmail,
-  changeEmailConfirm
+  changeEmailConfirm,
 };

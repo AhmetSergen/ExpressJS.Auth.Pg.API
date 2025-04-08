@@ -1,5 +1,5 @@
-const { DataTypes, Model } = require('sequelize');
-const sequelize = require('../config/database');
+const { DataTypes, Model } = require("sequelize");
+const sequelize = require("../config/database");
 
 class User extends Model {}
 
@@ -27,55 +27,55 @@ User.init(
       },
     },
     emailConfirmed: {
-      field: 'email_confirmed', // Maps to the actual database column
+      field: "email_confirmed", // Maps to the actual database column
       type: DataTypes.BOOLEAN,
       defaultValue: false,
       allowNull: false,
     },
     emailToken: {
-      field: 'email_token', // Maps to the actual database column
+      field: "email_token", // Maps to the actual database column
       type: DataTypes.UUID, // Matches `UUID` type in PostgreSQL
       allowNull: true,
     },
     passwordResetToken: {
-      field: 'password_reset_token', // Maps to the actual database column
+      field: "password_reset_token", // Maps to the actual database column
       type: DataTypes.STRING(255),
       allowNull: true,
     },
     passwordResetProvisional: {
-      field: 'password_reset_provisional', // Maps to the actual database column
+      field: "password_reset_provisional", // Maps to the actual database column
       type: DataTypes.STRING(255),
       allowNull: true,
     },
     passwordResetExpiry: {
-      field: 'password_reset_expiry', // Maps to the actual database column
+      field: "password_reset_expiry", // Maps to the actual database column
       type: DataTypes.DATE, // Matches `TIMESTAMP` in PostgreSQL
       allowNull: true,
     },
     changeEmailToken: {
-      field: 'change_email_token', // Maps to the actual database column
+      field: "change_email_token", // Maps to the actual database column
       type: DataTypes.STRING(255),
       allowNull: true,
     },
     changeEmailProvisional: {
-      field: 'change_email_provisional', // Maps to the actual database column
+      field: "change_email_provisional", // Maps to the actual database column
       type: DataTypes.STRING(255),
       allowNull: true,
     },
     changeEmailExpiry: {
-      field: 'change_email_expiry', // Maps to the actual database column
+      field: "change_email_expiry", // Maps to the actual database column
       type: DataTypes.DATE, // Matches `TIMESTAMP` in PostgreSQL
       allowNull: true,
     },
   },
   {
     sequelize,
-    modelName: 'User',
-    tableName: 'tb_users',
-    schema: 'auth',
+    modelName: "User",
+    tableName: "tb_users",
+    schema: "auth",
     timestamps: true, // Automatically handles `createdAt` and `updatedAt`
-    createdAt: 'created_at', // Matches the PostgreSQL column name
-    updatedAt: 'updated_at',
+    createdAt: "created_at", // Matches the PostgreSQL column name
+    updatedAt: "updated_at",
   }
 );
 
