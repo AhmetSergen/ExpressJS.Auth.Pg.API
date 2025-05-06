@@ -2,16 +2,16 @@
 
 This is a boilerplate project for running Authorization API with ExpressJS.
 
-You need PostgreSQL installed to run project. Required DB queries to initialize DB tables can be found in db_create_table_queries.sql file. 
+You need PostgreSQL installed to run project. Required DB queries to initialize DB tables can be found in `db_create_table_queries.sql` file. 
 
-Mailtrap is used for SMTP mail service. Update .env file according to your connection string
-For request examples check rest-client.http file. 
+Mailtrap is used for SMTP mail service. Update `.env` file according to your connection string
+For request examples check `rest-client.http` file. 
 
-You may open/close logging SQL queries on console log in database.js file via changing logging: property. 
+You may open/close logging SQL queries on console log in `database.js` file via changing logging: property. 
 
 **!!! Change SECRET_ACCESS_TOKEN and SECRET_REFRESH_TOKEN when deploying production.**
 
-Run stated commands in command terminal inside project folder to intialize, build and run the project: 
+Run stated commands in command terminal inside project folder to initialize, build and run the project: 
 
 ## Start Project
 
