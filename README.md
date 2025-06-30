@@ -105,3 +105,8 @@ Installed dependecy packages and descriptions are listed below:
 *A JavaScript date library for parsing, validating, manipulating, and formatting dates.*
 
     npm i moment
+
+### Install CORS
+*Add CORS (Cross-Origin Resource Sharing). Needed to create HttpOnly cookies etc.*
+
+    npm install cors
