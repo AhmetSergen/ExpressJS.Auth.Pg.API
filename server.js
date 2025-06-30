@@ -10,6 +10,13 @@ const authRoutes = require("./routes/auth");
 // Adds middleware that parses incoming requests with JSON payloads
 app.use(express.json());
 
+// Configure CORS
+// app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:4200', // Frontend URL
+    credentials: true
+}));
+
 // Declare api category endpoints
 app.use("/api/auth", authRoutes);
 
