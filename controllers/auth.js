@@ -165,6 +165,21 @@ const login = async (req, res) => {
           );
 
           if (await addRefreshToken(user, userTokens, refreshToken)) {
+            // Set HttpOnly cookies
+            res.cookie('accessToken', accessToken, {
+              httpOnly: true,
+              secure: true, // set to true if using HTTPS
+              sameSite: 'strict', // or 'lax' depending on your needs
+              maxAge: process.env.ACCESS_TOKEN_COOKIE_MAX_AGE
+            });
+
+            res.cookie('refreshToken', refreshToken, {
+              httpOnly: true,
+              secure: true,
+              sameSite: 'strict',
+              maxAge: process.env.REFRESH_TOKEN_COOKIE_MAX_AGE
+            });
+
             res.status(200).json({
               success: {
                 status: 200,
